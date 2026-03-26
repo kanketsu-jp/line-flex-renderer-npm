@@ -1,0 +1,80 @@
+{
+  "name": "line-flex-message-renderer",
+  "version": "0.1.0",
+  "description": "React component to render LINE Flex Message JSON as a visual preview — pixel-accurate to the LINE app.",
+  "keywords": [
+    "line",
+    "flex-message",
+    "line-bot",
+    "messaging-api",
+    "react",
+    "preview",
+    "renderer",
+    "storybook"
+  ],
+  "license": "MIT",
+  "author": "kanketsu-jp",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kanketsu-jp/line-flex-renderer-npm.git"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "biome check src/",
+    "lint:fix": "biome check --write src/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "prepublishOnly": "pnpm run build",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.9",
+    "@storybook/addon-a11y": "^10.3.3",
+    "@storybook/addon-docs": "^10.3.3",
+    "@storybook/react-vite": "^10.3.3",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "jsdom": "^29.0.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "storybook": "^10.3.3",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.1"
+  },
+  "packageManager": "pnpm@10.33.0"
+}
