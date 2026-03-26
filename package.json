@@ -1,6 +1,6 @@
 {
   "name": "line-flex-message-renderer",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "React component to render LINE Flex Message JSON as a visual preview — pixel-accurate to the LINE app.",
   "keywords": [
     "line",
@@ -57,7 +57,9 @@
     "react-dom": ">=18.0.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.9",
