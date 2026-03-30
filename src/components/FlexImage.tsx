@@ -1,5 +1,5 @@
 import type React from "react";
-import { IMAGE_SIZE, SPACING } from "../constants";
+import { IMAGE_SIZE } from "../constants";
 import type { FlexImage } from "../types";
 import { resolveSize } from "../utils";
 
@@ -11,8 +11,6 @@ export function FlexImageComponent({ component }: { component: FlexImage }) {
 			component.size === "full"
 				? "100%"
 				: resolveSize(component.size, IMAGE_SIZE, IMAGE_SIZE.md),
-		marginTop: resolveSize(component.margin, SPACING, undefined),
-		flex: component.flex !== undefined ? `${component.flex} 0 0%` : undefined,
 		backgroundColor: component.backgroundColor,
 	};
 

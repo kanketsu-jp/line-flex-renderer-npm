@@ -1,5 +1,5 @@
 import type React from "react";
-import { SPACING, TEXT_SIZE } from "../constants";
+import { TEXT_SIZE } from "../constants";
 import type { FlexText } from "../types";
 import { resolveSize } from "../utils";
 import { FlexSpanComponent } from "./FlexSpan";
@@ -21,13 +21,13 @@ export function FlexTextComponent({ component }: { component: FlexText }) {
 	const fontSize = resolveSize(component.size, TEXT_SIZE, TEXT_SIZE.md);
 
 	const style: React.CSSProperties = {
+		margin: 0,
+		width: "100%",
 		fontSize,
 		color: component.color,
 		fontWeight: component.weight === "bold" ? 700 : 400,
 		textAlign: (alignMap[component.align ?? "start"] ??
 			"left") as React.CSSProperties["textAlign"],
-		marginTop: resolveSize(component.margin, SPACING, undefined),
-		flex: component.flex !== undefined ? `${component.flex} 0 0%` : undefined,
 		alignSelf: component.gravity ? gravityMap[component.gravity] : undefined,
 		textDecoration:
 			component.decoration !== "none" ? component.decoration : undefined,

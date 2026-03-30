@@ -1,7 +1,6 @@
 import type React from "react";
-import { SPACING, TEXT_SIZE } from "../constants";
+import { TEXT_SIZE } from "../constants";
 import type { FlexButton } from "../types";
-import { resolveSize } from "../utils";
 
 export function FlexButtonComponent({ component }: { component: FlexButton }) {
 	const isPrimary = component.style === "primary";
@@ -15,7 +14,7 @@ export function FlexButtonComponent({ component }: { component: FlexButton }) {
 		alignItems: "center",
 		justifyContent: "center",
 		borderRadius:
-			isPrimary || component.style === "secondary" ? "9999px" : undefined,
+			isPrimary || component.style === "secondary" ? "8px" : undefined,
 		backgroundColor: isPrimary
 			? (component.color ?? "#17C950")
 			: isLink
@@ -30,8 +29,6 @@ export function FlexButtonComponent({ component }: { component: FlexButton }) {
 		fontWeight: 600,
 		border: "none",
 		cursor: "pointer",
-		marginTop: resolveSize(component.margin, SPACING, undefined),
-		flex: component.flex !== undefined ? `${component.flex} 0 0%` : undefined,
 	};
 
 	return (
