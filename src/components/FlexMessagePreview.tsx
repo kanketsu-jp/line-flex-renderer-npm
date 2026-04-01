@@ -1,8 +1,23 @@
 import type React from "react";
 import { BUBBLE_WIDTH } from "../constants";
-import type { FlexBubble, FlexContainer } from "../types";
+import type { FlexBox, FlexBubble, FlexContainer } from "../types";
 import { FlexBoxComponent } from "./FlexBox";
 import { FlexImageComponent } from "./FlexImage";
+
+/**
+ * FlexBox に padding 系プロパティが一切指定されていない場合のみ
+ * デフォルト padding を適用する。指定があればそちらを優先。
+ */
+function applyDefaultPadding(box: FlexBox, fallback: string): FlexBox {
+	const hasPadding =
+		box.paddingAll !== undefined ||
+		box.paddingTop !== undefined ||
+		box.paddingBottom !== undefined ||
+		box.paddingStart !== undefined ||
+		box.paddingEnd !== undefined;
+	if (hasPadding) return box;
+	return { ...box, paddingAll: fallback };
+}
 
 export interface FlexMessagePreviewProps {
 	/** Flex Message JSON（bubble or carousel） */
@@ -47,8 +62,10 @@ function BubbleRenderer({
 		>
 			{/* Header */}
 			{json.header && (
-				<div style={{ padding: "16px 16px 0", backgroundColor: headerBg }}>
-					<FlexBoxComponent component={json.header} />
+				<div style={{ backgroundColor: headerBg }}>
+					<FlexBoxComponent
+						component={applyDefaultPadding(json.header, "16px 16px 0")}
+					/>
 				</div>
 			)}
 
@@ -63,8 +80,10 @@ function BubbleRenderer({
 
 			{/* Body */}
 			{json.body && (
-				<div style={{ padding: "16px", backgroundColor: bodyBg }}>
-					<FlexBoxComponent component={json.body} />
+				<div style={{ backgroundColor: bodyBg }}>
+					<FlexBoxComponent
+						component={applyDefaultPadding(json.body, "16px")}
+					/>
 				</div>
 			)}
 
@@ -75,8 +94,10 @@ function BubbleRenderer({
 
 			{/* Footer */}
 			{json.footer && (
-				<div style={{ padding: "8px 16px 16px", backgroundColor: footerBg }}>
-					<FlexBoxComponent component={json.footer} />
+				<div style={{ backgroundColor: footerBg }}>
+					<FlexBoxComponent
+						component={applyDefaultPadding(json.footer, "8px 16px 16px")}
+					/>
 				</div>
 			)}
 		</div>
