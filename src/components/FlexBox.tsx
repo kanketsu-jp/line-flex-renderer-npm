@@ -45,9 +45,7 @@ export function FlexBoxComponent({ component }: { component: FlexBox }) {
 				if (child.type === "filler") {
 					const fillerFlex =
 						"flex" in child && child.flex != null ? child.flex : 1;
-					return (
-						<div key={i} style={{ flex: `${fillerFlex} 0 0%` }} />
-					);
+					return <div key={i} style={{ flex: `${fillerFlex} 0 0%` }} />;
 				}
 
 				// Spacer — fixed‑size gap (deprecated in LINE, but still supported)
@@ -72,8 +70,7 @@ export function FlexBoxComponent({ component }: { component: FlexBox }) {
 					"margin" in child && child.margin
 						? resolveSize(child.margin as string, SPACING, undefined)
 						: undefined;
-				const gapValue =
-					i > 0 ? (childMargin ?? resolvedSpacing) : undefined;
+				const gapValue = i > 0 ? (childMargin ?? resolvedSpacing) : undefined;
 				const marginProp = isVertical ? "marginTop" : "marginLeft";
 
 				// ---- Flex: LINE horizontal default is 1 ----
