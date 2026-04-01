@@ -19,6 +19,15 @@ export function FlexBoxComponent({ component }: { component: FlexBox }) {
 	const isBaseline = component.layout === "baseline";
 	const resolvedSpacing = resolveSize(component.spacing, SPACING, undefined);
 
+	// Resolve padding — avoid mixing shorthand (padding) with longhand
+	// (paddingTop etc.) in the same style object, because React clears
+	// longhand `undefined` values which overwrites the shorthand.
+	const pAll = resolveSize(component.paddingAll, SPACING, undefined);
+	const pTop = resolveSize(component.paddingTop, SPACING, undefined);
+	const pBottom = resolveSize(component.paddingBottom, SPACING, undefined);
+	const pLeft = resolveSize(component.paddingStart, SPACING, undefined);
+	const pRight = resolveSize(component.paddingEnd, SPACING, undefined);
+
 	const style: React.CSSProperties = {
 		display: "flex",
 		flexDirection: isVertical ? "column" : "row",
@@ -26,11 +35,11 @@ export function FlexBoxComponent({ component }: { component: FlexBox }) {
 			? "baseline"
 			: (component.alignItems ?? (isVertical ? "stretch" : "center")),
 		justifyContent: component.justifyContent,
-		padding: resolveSize(component.paddingAll, SPACING, undefined),
-		paddingTop: resolveSize(component.paddingTop, SPACING, undefined),
-		paddingBottom: resolveSize(component.paddingBottom, SPACING, undefined),
-		paddingLeft: resolveSize(component.paddingStart, SPACING, undefined),
-		paddingRight: resolveSize(component.paddingEnd, SPACING, undefined),
+		...(pAll !== undefined ? { padding: pAll } : {}),
+		...(pTop !== undefined ? { paddingTop: pTop } : {}),
+		...(pBottom !== undefined ? { paddingBottom: pBottom } : {}),
+		...(pLeft !== undefined ? { paddingLeft: pLeft } : {}),
+		...(pRight !== undefined ? { paddingRight: pRight } : {}),
 		backgroundColor: component.backgroundColor,
 		borderRadius: component.cornerRadius,
 		borderColor: component.borderColor,
