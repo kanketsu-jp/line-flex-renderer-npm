@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.2] - 2026-04-01
+
+### Fixed
+
+- **body/footer の固定 padding を FlexBox の paddingAll で上書き可能に** — header / body / footer の wrapper `<div>` に直接指定していた固定 padding を廃止し、FlexBox 側の `paddingAll` / `paddingTop` 等が指定されていればそちらを優先するように変更。padding 系プロパティが一切未指定の場合のみ従来のデフォルト値を適用する
+
 ## [1.2.1] - 2026-03-30
 
 ### Fixed
