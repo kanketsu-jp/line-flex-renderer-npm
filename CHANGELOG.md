@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.1] - 2026-09-05
+
+### Fixed
+
+- **FlexEditor が無限ループする問題を修正** — 親が毎レンダーで新しいオブジェクトを `value` に渡すと "Maximum update depth exceeded" で落ちていた。内部 state と中身が同じときは更新しないようにした
+
 ## [1.3.0] - 2026-09-04
 
 ### Added

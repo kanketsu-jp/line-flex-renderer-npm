@@ -30,14 +30,15 @@ export function FlexEditor(props: FlexEditorProps): React.ReactElement {
 	const [tab, setTab] = useState<"preview" | "edit">("preview");
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	const prevValueRef = useRef(props.value);
 	useEffect(() => {
-		if (props.value && props.value !== prevValueRef.current) {
-			prevValueRef.current = props.value;
-			setContainer(props.value);
+		if (!props.value) return;
+		const nextValue = props.value;
+		setContainer((prev) => {
+			if (JSON.stringify(prev) === JSON.stringify(nextValue)) return prev;
 			setSelected(null);
 			setActiveBubbleIndex(0);
-		}
+			return nextValue;
+		});
 	}, [props.value]);
 
 	const onChangeRef = useRef(props.onChange);
