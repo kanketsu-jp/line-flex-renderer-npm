@@ -14,12 +14,16 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          # npm Trusted Publishing は npm CLI 11.5.1 以上が要る。
+          # Node 22 の同梱 npm は 10.9.x なので Node 24（同梱 npm 11.x）にする。
+          node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm test
-      - run: pnpm publish --provenance --access public --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # 要件（11.5.1 以上）を満たしているかを後から実測できるようログに残す
+      - run: npm --version
+      # Trusted Publishing（OIDC）で公開する。
+      # トークンは渡さない。provenance は trusted publishing で自動生成されるため --provenance も付けない。
+      - run: npm publish --access public
