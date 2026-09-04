@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.2] - 2026-09-05
+
+### Fixed
+
+- **StrictMode（Next.js の dev 既定）でマウントしただけで `onChange` が 1 回呼ばれていた問題を修正**
+- **親から渡される値との同期を「前回やりとりした中身」との比較に統一し、`isFirst` フラグを廃止**
+- **選択状態のリセットを `setContainer` の updater の外へ移動し、updater を純粋にした**
+
 ## [1.3.1] - 2026-09-05
 
 ### Fixed
