@@ -33,11 +33,14 @@ export function FlexEditor(props: FlexEditorProps): React.ReactElement {
 	const containerJsonRef = useRef(containerJson);
 	containerJsonRef.current = containerJson;
 	const lastSyncedJsonRef = useRef(containerJson);
+	const emittedJsonRef = useRef<Set<string>>(new Set());
+	const emittedJsonOrderRef = useRef<string[]>([]);
 
 	useEffect(() => {
 		if (!props.value) return;
 		const nextValue = props.value;
 		const nextJson = JSON.stringify(nextValue);
+		if (emittedJsonRef.current.has(nextJson)) return;
 		if (nextJson === containerJsonRef.current) return;
 		lastSyncedJsonRef.current = nextJson;
 		setSelected(null);
@@ -51,6 +54,16 @@ export function FlexEditor(props: FlexEditorProps): React.ReactElement {
 	useEffect(() => {
 		if (containerJson === lastSyncedJsonRef.current) return;
 		lastSyncedJsonRef.current = containerJson;
+		if (!emittedJsonRef.current.has(containerJson)) {
+			emittedJsonRef.current.add(containerJson);
+			emittedJsonOrderRef.current.push(containerJson);
+			if (emittedJsonOrderRef.current.length > 200) {
+				const oldestJson = emittedJsonOrderRef.current.shift();
+				if (oldestJson !== undefined) {
+					emittedJsonRef.current.delete(oldestJson);
+				}
+			}
+		}
 		onChangeRef.current?.(container);
 	}, [container, containerJson]);
 
