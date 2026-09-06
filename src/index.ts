@@ -58,6 +58,15 @@ export type {
 export { SECTION_LABELS } from "./editor/types";
 export { useIsNarrow } from "./editor/useIsNarrow";
 export { toFlexMessage, validateFlex } from "./editor/validate";
+export type {
+	FlexJsonError,
+	FlexMessageValidationResult,
+} from "./editor/validateMessage";
+export {
+	formatFlexJson,
+	parseFlexMessage,
+	validateFlexMessage,
+} from "./editor/validateMessage";
 
 // Types
 export type {

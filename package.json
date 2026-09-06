@@ -1,6 +1,6 @@
 {
   "name": "line-flex-message-renderer",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "description": "React component to render LINE Flex Message JSON as a visual preview — pixel-accurate to the LINE app.",
   "keywords": [
     "line",

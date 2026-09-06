@@ -158,6 +158,35 @@ if (issues.every((i) => i.severity !== 'error')) {
 }
 ```
 
+#### Validating edited Flex Message JSON
+
+Use `parseFlexMessage` for JSON text from an editor, or `validateFlexMessage` for an already parsed value. Both functions return either the typed `FlexMessage` or all errors with JSON paths. Use `formatFlexJson` to display JSON with two-space indentation.
+
+Flex Message validation has two layers:
+
+| Function | Layer | Purpose |
+|----------|-------|---------|
+| `validateFlexMessage` | Structural validation | Checks whether an unknown value has the supported Flex Message shape and reports JSON paths |
+| `validateFlex` | Semantic validation | Checks LINE-specific meaning and constraints after the value has its Flex types |
+
+Unknown keys are passed through without validation and are preserved when the validated value is saved.
+
+```tsx
+import {
+  formatFlexJson,
+  parseFlexMessage,
+  validateFlexMessage,
+} from 'line-flex-message-renderer';
+
+const result = parseFlexMessage(jsonText);
+if (result.ok) {
+  const prettyJson = formatFlexJson(result.value);
+  // Save result.value or display prettyJson.
+} else {
+  console.error(result.errors);
+}
+```
+
 ### Customizing the Editor UI
 
 For custom workflows or building your own layout, the editor subcomponents are exported individually. You can combine `Outline`, `NodeInspector`, `JsonPanel`, and `EditorPanel` to compose a custom editing experience tailored to your application.
