@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0] - 2026-09-06
+
+### Added
+
+- **Flex Message JSON の構造検査を追加** — `validateFlexMessage`、`parseFlexMessage`、`formatFlexJson` とエラー型を公開
+- 未知のキーを保持したまま JSON パス付きで検証結果を返す機能を追加
+
 ## [1.3.3] - 2026-09-05
 
 ### Fixed
