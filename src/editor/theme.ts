@@ -105,3 +105,15 @@ export const iconButtonStyle: React.CSSProperties = {
 	padding: 0,
 	color: editorColors.subText,
 };
+
+/**
+ * アコーディオンの見出し。
+ * 🚨 `<summary>` は既定で marker（▶）が付く。文字の位置がずれないよう
+ *    list-style は残し、押せることが分かるように cursor だけ変える。
+ */
+export const summaryStyle: React.CSSProperties = {
+	...sectionTitleStyle,
+	cursor: "pointer",
+	userSelect: "none",
+	marginBottom: 0,
+};

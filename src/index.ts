@@ -1,6 +1,8 @@
 // Components
 export type { FlexMessagePreviewProps } from "./components/FlexMessagePreview";
 export { FlexMessagePreview } from "./components/FlexMessagePreview";
+export type { FlexPreviewProps } from "./components/FlexPreview";
+export { FlexPreview } from "./components/FlexPreview";
 export type { LineChatFrameProps } from "./components/LineChatFrame";
 export { LineChatFrame } from "./components/LineChatFrame";
 export { LineTextBubble } from "./components/LineTextBubble";
@@ -59,12 +61,15 @@ export { SECTION_LABELS } from "./editor/types";
 export { useIsNarrow } from "./editor/useIsNarrow";
 export { toFlexMessage, validateFlex } from "./editor/validate";
 export type {
+	FlexContainerValidationResult,
 	FlexJsonError,
 	FlexMessageValidationResult,
 } from "./editor/validateMessage";
 export {
 	formatFlexJson,
+	parseFlexContainer,
 	parseFlexMessage,
+	validateFlexContainer,
 	validateFlexMessage,
 } from "./editor/validateMessage";
 

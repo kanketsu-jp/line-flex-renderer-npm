@@ -1,4 +1,4 @@
-import type { FlexMessage } from "../types";
+import type { FlexContainer, FlexMessage } from "../types";
 
 /** JSON テキスト上の位置を指すエラー。ルート自身は path が "" */
 export interface FlexJsonError {
@@ -10,6 +10,11 @@ export interface FlexJsonError {
 
 export type FlexMessageValidationResult =
 	| { ok: true; value: FlexMessage }
+	| { ok: false; errors: FlexJsonError[] };
+
+/** contents（bubble / carousel）だけを検査した結果 */
+export type FlexContainerValidationResult =
+	| { ok: true; value: FlexContainer }
 	| { ok: false; errors: FlexJsonError[] };
 
 type JsonObject = Record<string, unknown>;
@@ -587,6 +592,53 @@ export function validateFlexMessage(
 		return { ok: false, errors };
 	}
 	return { ok: true, value: input as unknown as FlexMessage };
+}
+
+/**
+ * bubble / carousel（Flex Message の `contents`）だけを検査する。
+ *
+ * 🚨 検査そのものは `validateFlexMessage` を使い回す（500 行の規則を 2 つに割らない）。
+ *    altText はここでは対象外なので、ダミーを入れて呼び、altText 由来の指摘だけ捨てる。
+ *    パスの先頭に付く `contents.` も、利用者に見せる前に剥がす。
+ */
+export function validateFlexContainer(
+	input: unknown,
+): FlexContainerValidationResult {
+	const result = validateFlexMessage({
+		type: "flex",
+		altText: "-",
+		contents: input,
+	});
+	if (result.ok) {
+		return { ok: true, value: result.value.contents };
+	}
+	const errors = result.errors
+		.filter((e) => !e.path.startsWith("altText") && e.path !== "type")
+		.map((e) => ({
+			...e,
+			path: e.path === "contents" ? "" : e.path.replace(/^contents\.?/, ""),
+		}));
+	// 🚨 altText だけが理由で落ちることは無いはずだが、空にして「問題なし」に見せない
+	return { ok: false, errors: errors.length > 0 ? errors : result.errors };
+}
+
+/** JSON 文字列を parse してから contents として検査する */
+export function parseFlexContainer(
+	text: string,
+): FlexContainerValidationResult {
+	try {
+		return validateFlexContainer(JSON.parse(text));
+	} catch {
+		return {
+			ok: false,
+			errors: [
+				{
+					path: "",
+					message: "JSON として読めません（記号の対応を確かめてください）",
+				},
+			],
+		};
+	}
 }
 
 /** JSON 文字列を parse してから検査する */
