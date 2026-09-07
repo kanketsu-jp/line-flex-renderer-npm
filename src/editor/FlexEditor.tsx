@@ -1,7 +1,6 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { FlexMessagePreview } from "../components/FlexMessagePreview";
-import { LineChatFrame } from "../components/LineChatFrame";
+import { FlexPreview } from "../components/FlexPreview";
 import type { FlexBubble, FlexContainer } from "../types";
 import { EditorPanel } from "./EditorPanel";
 import { insertNode, moveNode, patchNode, removeNode } from "./path";
@@ -115,23 +114,11 @@ export function FlexEditor(props: FlexEditorProps): React.ReactElement {
 		: autoNarrow;
 
 	const previewNode = (
-		<div
-			style={{
-				backgroundColor: editorColors.previewBg,
-				padding: 16,
-				borderRadius: 12,
-				display: "flex",
-				justifyContent: "center",
-			}}
-		>
-			{props.showChatFrame === false ? (
-				<FlexMessagePreview json={container} />
-			) : (
-				<LineChatFrame accountName={props.accountName}>
-					<FlexMessagePreview json={container} />
-				</LineChatFrame>
-			)}
-		</div>
+		<FlexPreview
+			json={container}
+			showChatFrame={props.showChatFrame}
+			accountName={props.accountName}
+		/>
 	);
 
 	const carouselTabs =

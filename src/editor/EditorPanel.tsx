@@ -4,12 +4,7 @@ import { NodeInspector } from "./inspectors";
 import { JsonPanel } from "./JsonPanel";
 import { Outline } from "./Outline";
 import { getNode } from "./path";
-import {
-	ghostButtonStyle,
-	hintStyle,
-	panelStyle,
-	sectionTitleStyle,
-} from "./theme";
+import { ghostButtonStyle, hintStyle, panelStyle, summaryStyle } from "./theme";
 import type { EditorTemplate, FlexNodePath, InsertableKind } from "./types";
 import { validateFlex } from "./validate";
 
@@ -44,9 +39,11 @@ export function EditorPanel({
 
 	return (
 		<div>
-			<div style={panelStyle}>
-				<h3 style={sectionTitleStyle}>テンプレートから始める</h3>
-				<div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+			<details style={panelStyle}>
+				<summary style={summaryStyle}>テンプレートから始める</summary>
+				<div
+					style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}
+				>
 					{templates.map((t) => (
 						<button
 							type="button"
@@ -59,40 +56,46 @@ export function EditorPanel({
 						</button>
 					))}
 				</div>
-			</div>
+			</details>
 
-			<div style={panelStyle}>
-				<h3 style={sectionTitleStyle}>組み立て</h3>
-				<Outline
-					bubble={bubble}
-					selected={selected}
-					onSelect={onSelect}
-					onMove={onMove}
-					onRemove={onRemove}
-					onInsert={onInsert}
-				/>
-			</div>
-
-			<div style={panelStyle}>
-				<h3 style={sectionTitleStyle}>選んだ部品の設定</h3>
-				{selected && selectedNode ? (
-					<NodeInspector
-						node={selectedNode}
-						onPatch={(patch) => onPatch(selected, patch)}
+			<details open style={panelStyle}>
+				<summary style={summaryStyle}>組み立て</summary>
+				<div style={{ marginTop: 8 }}>
+					<Outline
+						bubble={bubble}
+						selected={selected}
+						onSelect={onSelect}
+						onMove={onMove}
+						onRemove={onRemove}
+						onInsert={onInsert}
 					/>
-				) : (
-					<p style={hintStyle}>左の一覧から編集したい部品を選んでください</p>
-				)}
-			</div>
+				</div>
+			</details>
 
-			<div style={panelStyle}>
-				<h3 style={sectionTitleStyle}>JSON</h3>
-				<JsonPanel
-					container={container}
-					onImport={onImportJson}
-					issues={validateFlex(container)}
-				/>
-			</div>
+			<details open style={panelStyle}>
+				<summary style={summaryStyle}>選んだ部品の設定</summary>
+				<div style={{ marginTop: 8 }}>
+					{selected && selectedNode ? (
+						<NodeInspector
+							node={selectedNode}
+							onPatch={(patch) => onPatch(selected, patch)}
+						/>
+					) : (
+						<p style={hintStyle}>左の一覧から編集したい部品を選んでください</p>
+					)}
+				</div>
+			</details>
+
+			<details style={panelStyle}>
+				<summary style={summaryStyle}>JSON</summary>
+				<div style={{ marginTop: 8 }}>
+					<JsonPanel
+						container={container}
+						onImport={onImportJson}
+						issues={validateFlex(container)}
+					/>
+				</div>
+			</details>
 		</div>
 	);
 }
