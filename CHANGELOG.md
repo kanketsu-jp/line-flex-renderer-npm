@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.1] - 2026-09-12
+
+### Fixed
+
+- **色を指定していない Flex の `text` が、ホストページの文字色を継承していた問題を修正** — 吹き出しの背景は `#ffffff` 固定なので、ダークモードのページに置くと**白地に白**で読めなくなっていた。`DEFAULT_TEXT_COLOR`（`#111111`）を既定として当てる
+- `LineTextBubble` が持っていた同じ値を `DEFAULT_TEXT_COLOR` に寄せ、既定色の定義を 1 箇所にした
+- 🚨 `span` には既定を置かない（親の `text` に指定した色を上書きしてしまうため）。色未指定の `span` は inline color を持たず、親から継承する
+
+> LINE 公式ドキュメントに「`text` の `color` の既定値」の記載は見つかりませんでした（`docs/messaging-api/flex-message-elements` の EN / JA、`reference/messaging-api`、サイト内検索を確認）。値はこの package 自身の慣習（`LineTextBubble` が使っていた `#111111`）に合わせています。
+
 ## [1.4.0] - 2026-09-06
 
 ### Added

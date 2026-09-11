@@ -1,3 +1,5 @@
+import { DEFAULT_TEXT_COLOR } from "../constants";
+
 export function LineTextBubble({ text }: { text: string }) {
 	return (
 		<div
@@ -7,7 +9,7 @@ export function LineTextBubble({ text }: { text: string }) {
 				padding: "10px 14px",
 				fontSize: 14,
 				lineHeight: 1.5,
-				color: "#111111",
+				color: DEFAULT_TEXT_COLOR,
 				whiteSpace: "pre-wrap",
 				wordBreak: "break-word",
 				maxWidth: 260,
