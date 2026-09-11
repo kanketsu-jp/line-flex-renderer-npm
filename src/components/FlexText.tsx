@@ -1,5 +1,5 @@
 import type React from "react";
-import { TEXT_SIZE } from "../constants";
+import { DEFAULT_TEXT_COLOR, TEXT_SIZE } from "../constants";
 import type { FlexText } from "../types";
 import { resolveSize } from "../utils";
 import { FlexSpanComponent } from "./FlexSpan";
@@ -24,7 +24,9 @@ export function FlexTextComponent({ component }: { component: FlexText }) {
 		margin: 0,
 		width: "100%",
 		fontSize,
-		color: component.color,
+		// 🚨 既定を置く。空にするとホストページの文字色を継承し、
+		//    吹き出しの白背景に対して白文字になりうる（ダークモードで読めなくなる）
+		color: component.color ?? DEFAULT_TEXT_COLOR,
 		fontWeight: component.weight === "bold" ? 700 : 400,
 		textAlign: (alignMap[component.align ?? "start"] ??
 			"left") as React.CSSProperties["textAlign"],
