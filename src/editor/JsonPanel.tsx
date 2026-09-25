@@ -1,6 +1,7 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import type { FlexContainer } from "../types";
+import { countLockedUris } from "./lockedUris";
 import {
 	buttonStyle,
 	editorColors,
@@ -14,6 +15,7 @@ import type { FlexValidationIssue } from "./types";
 import { formatFlexJson, parseFlexContainer } from "./validateMessage";
 
 export interface JsonPanelProps {
+	lockedUris?: string[];
 	container: FlexContainer;
 	/** 「保存」を押して検証が通ったときだけ呼ばれる */
 	onImport: (container: FlexContainer) => void;
@@ -44,11 +46,13 @@ const codeStyle: React.CSSProperties = {
  *    「もう無いこと」を数える検査に引っかかる）。読み込みは「保存」1 つに集約する。
  */
 export function JsonPanel({
+	lockedUris,
 	container,
 	onImport,
 	issues,
 }: JsonPanelProps): React.ReactElement {
 	const formatted = formatFlexJson(container);
+	const [lockedUriError, setLockedUriError] = useState(false);
 	const [editing, setEditing] = useState(false);
 	const [draft, setDraft] = useState(formatted);
 	const [copied, setCopied] = useState(false);
@@ -81,18 +85,32 @@ export function JsonPanel({
 		// 🚨 押された時点でもう一度検証する（入力時の結果を信じない）
 		const checked = parseFlexContainer(draft);
 		if (!checked.ok) return;
+		if (
+			countLockedUris(checked.value, lockedUris) <
+			countLockedUris(container, lockedUris)
+		) {
+			setLockedUriError(true);
+			return;
+		}
+		setLockedUriError(false);
 		onImport(checked.value);
 		baselineRef.current = draft;
 		setEditing(false);
 	};
 
 	const handleCancel = () => {
+		setLockedUriError(false);
 		setDraft(baselineRef.current);
 		setEditing(false);
 	};
 
 	return (
 		<div style={panelStyle}>
+			{lockedUriError && (
+				<p role="alert" style={{ color: editorColors.danger }}>
+					このリンクは変更できません
+				</p>
+			)}
 			<textarea
 				aria-label="Flex メッセージの JSON"
 				readOnly={!editing}

@@ -14,6 +14,7 @@ import { ColorField, SelectField, TextField, ToggleField } from "./fields";
 import { editorColors } from "./theme";
 
 export interface InspectorProps {
+	lockedUris?: string[];
 	node: FlexComponentType;
 	onPatch: (patch: Record<string, unknown>) => void;
 }
@@ -177,11 +178,16 @@ export function ImageInspector(props: {
 }
 
 export function ButtonInspector(props: {
+	lockedUris?: string[];
 	node: FlexButton;
 	onPatch: (p: Record<string, unknown>) => void;
 }): React.ReactElement {
 	const { node, onPatch } = props;
 	const isMessage = node.action?.type === "message";
+	const isLocked =
+		node.action?.type === "uri" &&
+		typeof node.action.uri === "string" &&
+		(props.lockedUris?.includes(node.action.uri) ?? false);
 
 	const handleActionTypeChange = (v: string | undefined) => {
 		const currentLabel = node.action?.label ?? "";
@@ -220,6 +226,7 @@ export function ButtonInspector(props: {
 			/>
 			<SelectField
 				label="動作"
+				disabled={isLocked}
 				options={buttonActionTypeOptions}
 				value={isMessage ? "message" : "uri"}
 				onChange={handleActionTypeChange}
@@ -227,7 +234,12 @@ export function ButtonInspector(props: {
 			{!isMessage ? (
 				<TextField
 					label="リンクURL"
-					hint="http / https / line / tel で始めてください"
+					disabled={isLocked}
+					hint={
+						isLocked
+							? "このリンクは変更できません"
+							: "http / https / line / tel で始めてください"
+					}
 					value={node.action?.uri ?? ""}
 					onChange={(v) =>
 						onPatch({
@@ -406,7 +418,13 @@ export function NodeInspector(props: InspectorProps): React.ReactElement {
 		case "image":
 			return <ImageInspector node={node} onPatch={onPatch} />;
 		case "button":
-			return <ButtonInspector node={node} onPatch={onPatch} />;
+			return (
+				<ButtonInspector
+					node={node}
+					onPatch={onPatch}
+					lockedUris={props.lockedUris}
+				/>
+			);
 		case "box":
 			return <BoxInspector node={node} onPatch={onPatch} />;
 		case "icon":

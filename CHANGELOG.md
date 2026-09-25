@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0] - 2026-09-25
+
+### Added
+
+- **FlexEditor に `lockedUris` を追加** — 差し込み位置の URI をリンク欄の編集・動作の切替・部品の削除・JSON やテンプレートによる置き換えから保護する
+- 部分木の保護対象 URI を調べる `countLockedUris` / `containsLockedUri` を公開
+
 ## [1.5.1] - 2026-09-12
 
 ### Fixed

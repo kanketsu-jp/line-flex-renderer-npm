@@ -103,6 +103,7 @@ import { FlexEditor } from 'line-flex-message-renderer';
 | `value` | `FlexContainer?` | `templates[0].bubble` | Initial Flex Message JSON (bubble or carousel) |
 | `onChange` | `((json: FlexContainer) => void)?` | — | Callback fired whenever the message is modified |
 | `templates` | `EditorTemplate[]?` | Built-in 5 templates | Custom template list to display in the editor |
+| `lockedUris` | `string[]?` | — | Protect placeholder URIs from link edits, action changes, component deletion, and replacement via JSON or templates |
 | `mobileBreakpoint` | `number?` | `768` | Width in pixels below which the layout switches to tabs |
 | `forceLayout` | `"desktop" \| "mobile"?` | — | Force desktop (two-column) or mobile (tabbed) layout |
 | `showChatFrame` | `boolean?` | `true` | Whether to wrap the preview in `LineChatFrame` |

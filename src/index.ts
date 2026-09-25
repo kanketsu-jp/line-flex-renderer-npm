@@ -32,6 +32,7 @@ export {
 } from "./editor/inspectors";
 export type { JsonPanelProps } from "./editor/JsonPanel";
 export { JsonPanel } from "./editor/JsonPanel";
+export { containsLockedUri, countLockedUris } from "./editor/lockedUris";
 export type { OutlineProps } from "./editor/Outline";
 export { Outline } from "./editor/Outline";
 export {
