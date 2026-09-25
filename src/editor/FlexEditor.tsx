@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { FlexPreview } from "../components/FlexPreview";
 import type { FlexBubble, FlexContainer } from "../types";
 import { EditorPanel } from "./EditorPanel";
+import { countLockedUris } from "./lockedUris";
 import { insertNode, moveNode, patchNode, removeNode } from "./path";
 import { defaultTemplates } from "./templates";
 import {
@@ -26,6 +27,7 @@ export function FlexEditor(props: FlexEditorProps): React.ReactElement {
 	);
 	const [selected, setSelected] = useState<FlexNodePath | null>(null);
 	const [activeBubbleIndex, setActiveBubbleIndex] = useState(0);
+	const [lockedUriError, setLockedUriError] = useState(false);
 	const [tab, setTab] = useState<"preview" | "edit">("preview");
 	const containerRef = useRef<HTMLDivElement>(null);
 	const containerJson = JSON.stringify(container);
@@ -73,13 +75,25 @@ export function FlexEditor(props: FlexEditorProps): React.ReactElement {
 				container.contents[0] ??
 				templates[0].bubble);
 
+	const applyContainer = (next: FlexContainer) => {
+		if (
+			countLockedUris(next, props.lockedUris) <
+			countLockedUris(container, props.lockedUris)
+		) {
+			setLockedUriError(true);
+			return;
+		}
+		setLockedUriError(false);
+		setContainer(next);
+	};
+
 	const applyBubble = (next: FlexBubble) => {
-		setContainer((prev) =>
-			prev.type === "bubble"
+		applyContainer(
+			container.type === "bubble"
 				? next
 				: {
-						...prev,
-						contents: prev.contents.map((b, i) =>
+						...container,
+						contents: container.contents.map((b, i) =>
 							i === activeBubbleIndex ? next : b,
 						),
 					},
@@ -98,12 +112,12 @@ export function FlexEditor(props: FlexEditorProps): React.ReactElement {
 	const onInsert = (parentPath: FlexNodePath, kind: InsertableKind) =>
 		applyBubble(insertNode(bubble, parentPath, kind));
 	const onApplyTemplate = (t: EditorTemplate) => {
-		setContainer(t.bubble);
+		applyContainer(t.bubble);
 		setSelected(null);
 		setActiveBubbleIndex(0);
 	};
 	const onImportJson = (c: FlexContainer) => {
-		setContainer(c);
+		applyContainer(c);
 		setSelected(null);
 		setActiveBubbleIndex(0);
 	};
@@ -148,19 +162,27 @@ export function FlexEditor(props: FlexEditorProps): React.ReactElement {
 		) : null;
 
 	const editorPanel = (
-		<EditorPanel
-			container={container}
-			bubble={bubble}
-			selected={selected}
-			templates={templates}
-			onSelect={onSelect}
-			onPatch={onPatch}
-			onMove={onMove}
-			onRemove={onRemove}
-			onInsert={onInsert}
-			onApplyTemplate={onApplyTemplate}
-			onImportJson={onImportJson}
-		/>
+		<>
+			{lockedUriError && (
+				<p role="alert" style={{ color: editorColors.danger }}>
+					このリンクは変更できません
+				</p>
+			)}
+			<EditorPanel
+				lockedUris={props.lockedUris}
+				container={container}
+				bubble={bubble}
+				selected={selected}
+				templates={templates}
+				onSelect={onSelect}
+				onPatch={onPatch}
+				onMove={onMove}
+				onRemove={onRemove}
+				onInsert={onInsert}
+				onApplyTemplate={onApplyTemplate}
+				onImportJson={onImportJson}
+			/>
+		</>
 	);
 
 	if (!narrow) {

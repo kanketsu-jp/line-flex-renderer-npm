@@ -1,11 +1,13 @@
 import type React from "react";
 import { Fragment } from "react";
 import type { FlexBubble } from "../types";
+import { containsLockedUri } from "./lockedUris";
 import { isSamePath, listNodes } from "./path";
 import { editorColors, ghostButtonStyle, iconButtonStyle } from "./theme";
 import type { FlexNodePath, InsertableKind } from "./types";
 
 export interface OutlineProps {
+	lockedUris?: string[];
 	bubble: FlexBubble;
 	selected: FlexNodePath | null;
 	onSelect: (path: FlexNodePath) => void;
@@ -26,6 +28,7 @@ const INSERT_BUTTONS: ReadonlyArray<{
 ];
 
 export function Outline({
+	lockedUris,
 	bubble,
 	selected,
 	onSelect,
@@ -39,6 +42,7 @@ export function Outline({
 		<ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
 			{entries.map((entry) => {
 				const pathKey = `${entry.path.section}-${entry.path.indices.join("-")}`;
+				const isLocked = containsLockedUri(entry.node, lockedUris);
 				const isSelected = isSamePath(selected, entry.path);
 				const labelStyle: React.CSSProperties = {
 					...ghostButtonStyle,
@@ -93,6 +97,8 @@ export function Outline({
 							<button
 								type="button"
 								aria-label="削除"
+								disabled={isLocked}
+								title={isLocked ? "このリンクは変更できません" : undefined}
 								style={iconButtonStyle}
 								onClick={() => onRemove(entry.path)}
 							>

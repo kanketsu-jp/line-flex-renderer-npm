@@ -9,6 +9,7 @@ import type { EditorTemplate, FlexNodePath, InsertableKind } from "./types";
 import { validateFlex } from "./validate";
 
 export interface EditorPanelProps {
+	lockedUris?: string[];
 	container: FlexContainer;
 	bubble: FlexBubble;
 	selected: FlexNodePath | null;
@@ -23,6 +24,7 @@ export interface EditorPanelProps {
 }
 
 export function EditorPanel({
+	lockedUris,
 	container,
 	bubble,
 	selected,
@@ -62,6 +64,7 @@ export function EditorPanel({
 				<summary style={summaryStyle}>組み立て</summary>
 				<div style={{ marginTop: 8 }}>
 					<Outline
+						lockedUris={lockedUris}
 						bubble={bubble}
 						selected={selected}
 						onSelect={onSelect}
@@ -77,6 +80,7 @@ export function EditorPanel({
 				<div style={{ marginTop: 8 }}>
 					{selected && selectedNode ? (
 						<NodeInspector
+							lockedUris={lockedUris}
 							node={selectedNode}
 							onPatch={(patch) => onPatch(selected, patch)}
 						/>
@@ -90,6 +94,7 @@ export function EditorPanel({
 				<summary style={summaryStyle}>JSON</summary>
 				<div style={{ marginTop: 8 }}>
 					<JsonPanel
+						lockedUris={lockedUris}
 						container={container}
 						onImport={onImportJson}
 						issues={validateFlex(container)}

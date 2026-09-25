@@ -37,6 +37,8 @@ export interface EditorTemplate {
 }
 
 export interface FlexEditorProps {
+	/** ここに挙げた URI を持つ action は、リンク欄の編集・動作の切替・部品の削除・JSON やテンプレートによる置き換えで消せない。差し込み位置（送信時に置き換える URL）を守るため。 */
+	lockedUris?: string[];
 	/** 初期の Flex JSON。未指定なら templates[0].bubble */
 	value?: FlexContainer;
 	/** 編集のたびに呼ばれる。LINE Messaging API の flex.contents にそのまま渡せる */

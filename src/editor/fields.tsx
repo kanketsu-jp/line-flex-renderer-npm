@@ -21,10 +21,19 @@ export function TextField(
 		placeholder?: string;
 		multiline?: boolean;
 		maxLength?: number;
+		disabled?: boolean;
 	},
 ): React.ReactElement {
-	const { label, hint, value, onChange, placeholder, multiline, maxLength } =
-		props;
+	const {
+		label,
+		hint,
+		value,
+		onChange,
+		placeholder,
+		multiline,
+		maxLength,
+		disabled,
+	} = props;
 	const id = useId();
 
 	return (
@@ -41,6 +50,7 @@ export function TextField(
 					onChange={(e) => onChange(e.target.value)}
 					placeholder={placeholder}
 					maxLength={maxLength}
+					disabled={disabled}
 				/>
 			) : (
 				<input
@@ -51,6 +61,7 @@ export function TextField(
 					onChange={(e) => onChange(e.target.value)}
 					placeholder={placeholder}
 					maxLength={maxLength}
+					disabled={disabled}
 				/>
 			)}
 			{hint ? <p style={hintStyle}>{hint}</p> : null}
@@ -117,9 +128,10 @@ export function SelectField(
 		onChange: (v: string | undefined) => void;
 		options: ReadonlyArray<{ value: string; label: string }>;
 		emptyLabel?: string;
+		disabled?: boolean;
 	},
 ): React.ReactElement {
-	const { label, hint, value, onChange, options, emptyLabel } = props;
+	const { label, hint, value, onChange, options, emptyLabel, disabled } = props;
 	const id = useId();
 
 	return (
@@ -128,6 +140,7 @@ export function SelectField(
 				{label}
 			</label>
 			<select
+				disabled={disabled}
 				id={id}
 				style={inputStyle}
 				value={value ?? ""}
