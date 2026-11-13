@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import type { FlexBubble } from "../../types";
+import type { FlexBubble } from "../types";
 import ReceiptJson from "./templates/Receipt.json";
-import { ConceptWizard } from "../wysiwyg/ConceptD";
+import { ConceptWizard } from "./wysiwyg/ConceptD";
 
 const initial = ReceiptJson as FlexBubble;
 
