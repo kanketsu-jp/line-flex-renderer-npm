@@ -1,6 +1,6 @@
 // biome-ignore-all lint/suspicious/noArrayIndexKey: Flex contents は一意 id を持たず、並び順が実質的な識別子になる
 import type React from "react";
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { FlexComponentRenderer } from "../../../components/FlexComponentRenderer";
 import { SPACING } from "../../../constants";
 import { containsLockedUri } from "../../../editor/lockedUris";
@@ -19,6 +19,27 @@ import type { FlexDoc } from "./useFlexDoc";
  * - 見た目の再現は既存レンダラー（FlexComponentRenderer）を再利用
  */
 
+/** ドラッグ中のドロップ先ハイライト（パレット DnD 用） */
+const DropTargetContext = createContext<FlexNodePath | null>(null);
+
+/** ポインタ操作中のドロップ先判定: elementFromPoint から data 属性で box を探す */
+export function findDropTargetFromPoint(
+	x: number,
+	y: number,
+): { path: FlexNodePath; nodeType: string } | null {
+	const el = document.elementFromPoint(x, y) as HTMLElement | null;
+	const holder = el?.closest("[data-flex-path]") as HTMLElement | null;
+	if (!holder) return null;
+	try {
+		return {
+			path: JSON.parse(holder.dataset.flexPath ?? "") as FlexNodePath,
+			nodeType: holder.dataset.flexType ?? "",
+		};
+	} catch {
+		return null;
+	}
+}
+
 interface NodeWrapProps {
 	path: FlexNodePath;
 	node: FlexComponentType;
@@ -29,6 +50,12 @@ interface NodeWrapProps {
 
 function NodeWrap({ path, node, doc, interactive, children }: NodeWrapProps) {
 	const [hover, setHover] = useState(false);
+	const dropTarget = useContext(DropTargetContext);
+	const isDropTarget =
+		dropTarget !== null &&
+		dropTarget.section === path.section &&
+		dropTarget.indices.join() === path.indices.join() &&
+		node.type === "box";
 	const isSelected =
 		doc.selected &&
 		doc.selected.section === path.section &&
@@ -46,13 +73,17 @@ function NodeWrap({ path, node, doc, interactive, children }: NodeWrapProps) {
 		<div
 			role="button"
 			tabIndex={0}
+			data-flex-path={JSON.stringify(path)}
+			data-flex-type={node.type}
 			style={{
 				position: "relative",
-				outline: isSelected
-					? `2px solid ${w.green}`
-					: hover
-						? `1px dashed ${w.green}`
-						: undefined,
+				outline: isDropTarget
+					? `3px solid ${w.green}`
+					: isSelected
+						? `2px solid ${w.green}`
+						: hover
+							? `1px dashed ${w.green}`
+							: undefined,
 				outlineOffset: 2,
 				borderRadius: 3,
 				cursor: "pointer",
@@ -477,6 +508,8 @@ export interface InteractiveTreeProps {
 	width?: number;
 	/** セクション追加のハンドラ（未指定ならプレースホルダの＋を表示しない） */
 	onAddSection?: (section: FlexSection) => void;
+	/** ドラッグ中のドロップ先 box（その box を緑枠で強調する） */
+	activeDropPath?: FlexNodePath | null;
 }
 
 export function InteractiveTree({
@@ -484,6 +517,7 @@ export function InteractiveTree({
 	interactive = true,
 	width = 300,
 	onAddSection,
+	activeDropPath = null,
 }: InteractiveTreeProps) {
 	const bubble = doc.bubble;
 	const bodyBg = bubble.styles?.body?.backgroundColor;
@@ -491,63 +525,65 @@ export function InteractiveTree({
 	const footerBg = bubble.styles?.footer?.backgroundColor;
 
 	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions: キャンバス背景クリックで選択解除（標準的なキャンバス操作）
-		<div
-			onClick={() => doc.select(null)}
-			onKeyDown={(e) => {
-				if (e.key === "Escape") doc.select(null);
-			}}
-			role="presentation"
-			style={{
-				width,
-				borderRadius: 16,
-				overflow: "hidden",
-				backgroundColor: "#ffffff",
-				boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
-				fontFamily:
-					'-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial, sans-serif',
-			}}
-		>
-			{SECTION_ORDER.map((section) => {
-				const node = bubble[section];
-				if (!node) {
-					return interactive ? (
-						<SectionView
-							key={section}
-							section={section}
-							bubble={bubble}
-							doc={doc}
-							interactive={interactive}
-							onAddSection={onAddSection}
-						/>
-					) : null;
-				}
-				return (
-					<div
-						key={section}
-						style={{
-							backgroundColor:
-								section === "header"
-									? headerBg
-									: section === "body"
-										? bodyBg
-										: section === "footer"
-											? footerBg
-											: undefined,
-						}}
-					>
-						<div style={{ padding: SECTION_PADDING[section] }}>
+		<DropTargetContext.Provider value={activeDropPath}>
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: キャンバス背景クリックで選択解除（標準的なキャンバス操作） */}
+			<div
+				onClick={() => doc.select(null)}
+				onKeyDown={(e) => {
+					if (e.key === "Escape") doc.select(null);
+				}}
+				role="presentation"
+				style={{
+					width,
+					borderRadius: 16,
+					overflow: "hidden",
+					backgroundColor: "#ffffff",
+					boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
+					fontFamily:
+						'-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial, sans-serif',
+				}}
+			>
+				{SECTION_ORDER.map((section) => {
+					const node = bubble[section];
+					if (!node) {
+						return interactive ? (
 							<SectionView
+								key={section}
 								section={section}
 								bubble={bubble}
 								doc={doc}
 								interactive={interactive}
 								onAddSection={onAddSection}
 							/>
+						) : null;
+					}
+					return (
+						<div
+							key={section}
+							style={{
+								backgroundColor:
+									section === "header"
+										? headerBg
+										: section === "body"
+											? bodyBg
+											: section === "footer"
+												? footerBg
+												: undefined,
+							}}
+						>
+							<div style={{ padding: SECTION_PADDING[section] }}>
+								<SectionView
+									section={section}
+									bubble={bubble}
+									doc={doc}
+									interactive={interactive}
+									onAddSection={onAddSection}
+								/>
+							</div>
 						</div>
-					</div>
-				);
-			})}
-		</div>
+					);
+				})}
+			</div>
+		</DropTargetContext.Provider>
 	);
 }
