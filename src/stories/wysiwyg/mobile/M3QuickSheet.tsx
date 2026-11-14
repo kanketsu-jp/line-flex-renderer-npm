@@ -48,7 +48,7 @@ export function MobileQuickSheet({ initial }: { initial: FlexBubble }) {
 					justifyContent: "center",
 				}}
 			>
-				<MobilePreview doc={doc} width={320} />
+				<MobilePreview doc={doc} width="100%" />
 			</div>
 
 			{/* 選択中の部品 → フローティングメニュー */}

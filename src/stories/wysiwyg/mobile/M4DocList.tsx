@@ -128,7 +128,7 @@ export function MobileDocList({ initial }: { initial: FlexBubble }) {
 						justifyContent: "center",
 					}}
 				>
-					<MobilePreview doc={doc} width={250} />
+					<MobilePreview doc={doc} width="100%" />
 				</div>
 			)}
 
@@ -158,13 +158,6 @@ export function MobileDocList({ initial }: { initial: FlexBubble }) {
 										setSheetOpen(true);
 									}
 								}}
-								onPointerDown={(e) => beginDrag(e, entry)}
-								onPointerMove={moveDrag}
-								onPointerUp={endDrag}
-								onPointerCancel={() => {
-									dragInfoRef.current = null;
-									setGhost(null);
-								}}
 								style={{
 									display: "flex",
 									alignItems: "center",
@@ -181,18 +174,42 @@ export function MobileDocList({ initial }: { initial: FlexBubble }) {
 									border: isOver
 										? `1.5px dashed ${w.green}`
 										: "1px solid transparent",
-									cursor: "grab",
-									touchAction: "none",
 								}}
 							>
+								{/* ドラッグハンドル: ここだけ touchAction を切る（行本体は縦スクロール可能のまま） */}
+								{/* biome-ignore lint/a11y/useSemanticElements: pointer capture を使うドラッグ起点のため span+role */}
 								<span
+									aria-label="ドラッグして並べ替え"
+									role="button"
+									tabIndex={0}
+									onPointerDown={(e) => beginDrag(e, entry)}
+									onPointerMove={moveDrag}
+									onPointerUp={endDrag}
+									onPointerCancel={() => {
+										dragInfoRef.current = null;
+										setGhost(null);
+									}}
+									onKeyDown={(e) => {
+										if (e.key === "Enter" || e.key === " ") {
+											e.stopPropagation();
+											doc.select(entry.path);
+											setSheetOpen(true);
+										}
+									}}
 									style={{
 										color:
 											entry.path.indices.length === 0 ? w.green : w.subText,
 										fontSize: 11,
-										width: 18,
-										textAlign: "center",
+										width: 24,
+										height: 44,
+										display: "inline-flex",
+										alignItems: "center",
+										justifyContent: "center",
 										flexShrink: 0,
+										cursor:
+											entry.path.indices.length === 0 ? "default" : "grab",
+										touchAction:
+											entry.path.indices.length === 0 ? "auto" : "none",
 									}}
 								>
 									{entry.path.indices.length === 0 ? "▣" : "⠿"}

@@ -103,7 +103,7 @@ export function MobileSteps({ initial }: { initial: FlexBubble }) {
 							</div>
 						)}
 						<div style={{ display: "flex", justifyContent: "center" }}>
-							<MobilePreview doc={doc} width={290} />
+							<MobilePreview doc={doc} width="100%" />
 						</div>
 					</div>
 				)}
@@ -113,7 +113,7 @@ export function MobileSteps({ initial }: { initial: FlexBubble }) {
 							部品をタップして選び、⚙ 的なフローで調整 →「JSON をコピー」で完成
 						</p>
 						<div style={{ display: "flex", justifyContent: "center" }}>
-							<MobilePreview doc={doc} width={290} />
+							<MobilePreview doc={doc} width="100%" />
 						</div>
 					</div>
 				)}

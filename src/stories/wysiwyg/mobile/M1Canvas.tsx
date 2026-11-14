@@ -49,7 +49,7 @@ export function MobileCanvas({ initial }: { initial: FlexBubble }) {
 					alignItems: "center",
 				}}
 			>
-				<MobilePreview doc={doc} width={300} />
+				<MobilePreview doc={doc} width="100%" />
 			</div>
 
 			{/* 選択中部品のコンテキストバー */}

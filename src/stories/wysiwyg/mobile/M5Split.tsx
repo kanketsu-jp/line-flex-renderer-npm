@@ -5,7 +5,12 @@ import type { FlexBubble } from "../../../types";
 import { font, kindIcon, kindLabel, w } from "../core/theme";
 import { useFlexDoc } from "../core/useFlexDoc";
 import { WysiwygInspector } from "../core/WysiwygInspector";
-import { MobilePreview, MobileShell, TapToPlaceLayer } from "./MobileShared";
+import {
+	MobilePreview,
+	MobileShell,
+	TapToPlaceLayer,
+	useContainerLayout,
+} from "./MobileShared";
 
 /**
  * 案 M5: 分割ライブプレビュー型
@@ -20,6 +25,7 @@ import { MobilePreview, MobileShell, TapToPlaceLayer } from "./MobileShared";
 
 export function MobileSplit({ initial }: { initial: FlexBubble }) {
 	const doc = useFlexDoc(initial);
+	const { compact } = useContainerLayout(); // コンテナ幅で分割比を可変（vw 不使用）
 	const [insertKind, setInsertKind] = useState<InsertableKind | null>(null);
 	const selectedNode = doc.selected
 		? getNode(doc.bubble, doc.selected)
@@ -30,7 +36,7 @@ export function MobileSplit({ initial }: { initial: FlexBubble }) {
 			{/* 上: プレビュー（固定） */}
 			<div
 				style={{
-					height: "45%",
+					height: compact ? "38%" : "45%",
 					flexShrink: 0,
 					overflowY: "auto",
 					backgroundColor: w.canvasBg,
@@ -40,7 +46,7 @@ export function MobileSplit({ initial }: { initial: FlexBubble }) {
 					borderBottom: `1px solid ${w.border}`,
 				}}
 			>
-				<MobilePreview doc={doc} width={300} />
+				<MobilePreview doc={doc} width="100%" />
 			</div>
 
 			{/* 下: 編集（パレット or 選択部品の設定） */}

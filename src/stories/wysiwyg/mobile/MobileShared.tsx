@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { ensureSection, insertNode } from "../../../editor/path";
 import type { FlexNodePath, InsertableKind } from "../../../editor/types";
 import type { FlexBubble } from "../../../types";
@@ -47,9 +47,25 @@ export function MobileShell({
 	doc: ReturnType<typeof useFlexDoc>;
 }) {
 	const isMobile = useIsMobileViewport();
+	// コンテナクエリ: vw ではなくこのシェル自身の幅を測定（モーダル/シート/埋め込みでも同じ判定）
+	const shellRef = useRef<HTMLDivElement>(null);
+	const [containerWidth, setContainerWidth] = useState(390);
+	useEffect(() => {
+		const el = shellRef.current;
+		if (!el) return;
+		const ro = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				setContainerWidth(entry.contentRect.width);
+			}
+		});
+		ro.observe(el);
+		return () => ro.disconnect();
+	}, []);
+
 	const inner = (
 		<div
 			data-mobile-shell
+			ref={shellRef}
 			style={{
 				height: "100%",
 				display: "flex",
@@ -61,17 +77,20 @@ export function MobileShell({
 				position: "relative",
 			}}
 		>
-			<MobileHeader title={title} onClose={onClose} doc={doc} />
-			<div
-				style={{
-					flex: 1,
-					display: "flex",
-					flexDirection: "column",
-					minHeight: 0,
-				}}
-			>
-				{children}
-			</div>
+			<ContainerWidthContext.Provider value={containerWidth}>
+				<MobileHeader title={title} onClose={onClose} doc={doc} />
+				<div
+					style={{
+						flex: 1,
+						display: "flex",
+						flexDirection: "column",
+						minHeight: 0,
+						minWidth: 0,
+					}}
+				>
+					{children}
+				</div>
+			</ContainerWidthContext.Provider>
 		</div>
 	);
 	if (isMobile) return <div style={{ height: "100dvh" }}>{inner}</div>;
@@ -88,7 +107,8 @@ export function MobileShell({
 		>
 			<div
 				style={{
-					width: 390,
+					width: "min(390px, 100%)",
+					maxWidth: 390,
 					height: "min(760px, 100%)",
 					borderRadius: 28,
 					overflow: "hidden",
@@ -186,6 +206,23 @@ const btnReset: React.CSSProperties = {
 	fontFamily: font,
 };
 
+/** コンテナ幅（ResizeObserver で測定。ブレークポイントではなくコンテナクエリ的な判定に使う） */
+const ContainerWidthContext = createContext<number>(390);
+
+export function useContainerWidth(): number {
+	return useContext(ContainerWidthContext);
+}
+
+/** コンテナ幅に応じたレイアウト判定（vw ではなくコンテナサイズ基準） */
+export function useContainerLayout(): {
+	width: number;
+	compact: boolean; // < 360
+	narrow: boolean; // < 480
+} {
+	const width = useContainerWidth();
+	return { width, compact: width < 360, narrow: width < 480 };
+}
+
 /** 横スクロール部品パレット（44px 高のタッチターゲット） */
 export function PaletteBar({
 	onPick,
@@ -262,14 +299,14 @@ export function insertToBody(
 	doc.replace(withInsert);
 }
 
-/** 簡易プレビュー（インタラクション付き） */
+/** 簡易プレビュー（インタラクション付き）。width 未指定ならコンテナいっぱい（maxWidth は bubble 実幅） */
 export function MobilePreview({
 	doc,
-	width = 320,
+	width = "100%",
 	activeDropPath,
 }: {
 	doc: ReturnType<typeof useFlexDoc>;
-	width?: number;
+	width?: number | string;
 	activeDropPath?: FlexNodePath | null;
 }) {
 	return (

@@ -2,7 +2,7 @@
 import type React from "react";
 import { createContext, useContext, useState } from "react";
 import { FlexComponentRenderer } from "../../../components/FlexComponentRenderer";
-import { SPACING } from "../../../constants";
+import { BUBBLE_WIDTH, SPACING } from "../../../constants";
 import { containsLockedUri } from "../../../editor/lockedUris";
 import { nodeLabel } from "../../../editor/path";
 import type { FlexNodePath, FlexSection } from "../../../editor/types";
@@ -504,8 +504,8 @@ const SECTION_PADDING: Record<FlexSection, string> = {
 export interface InteractiveTreeProps {
 	doc: FlexDoc;
 	interactive?: boolean;
-	/** 幅（既定 300） */
-	width?: number;
+	/** 幅。数値(px)または CSS 文字列。既定 "100%"（コンテナに追従し、bubble の実幅で最大） */
+	width?: number | string;
 	/** セクション追加のハンドラ（未指定ならプレースホルダの＋を表示しない） */
 	onAddSection?: (section: FlexSection) => void;
 	/** ドラッグ中のドロップ先 box（その box を緑枠で強調する） */
@@ -515,7 +515,7 @@ export interface InteractiveTreeProps {
 export function InteractiveTree({
 	doc,
 	interactive = true,
-	width = 300,
+	width = "100%",
 	onAddSection,
 	activeDropPath = null,
 }: InteractiveTreeProps) {
