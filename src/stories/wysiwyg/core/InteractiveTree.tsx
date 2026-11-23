@@ -535,6 +535,9 @@ export function InteractiveTree({
 				role="presentation"
 				style={{
 					width,
+					// bubble の LINE 実機幅で最大（見た目はそのままに狭いコンテナへ収める）
+					maxWidth: BUBBLE_WIDTH[doc.bubble.size ?? "mega"] ?? undefined,
+					boxSizing: "border-box",
 					borderRadius: 16,
 					overflow: "hidden",
 					backgroundColor: "#ffffff",
