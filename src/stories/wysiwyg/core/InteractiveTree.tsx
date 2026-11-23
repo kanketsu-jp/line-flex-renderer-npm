@@ -1,4 +1,6 @@
 // biome-ignore-all lint/suspicious/noArrayIndexKey: Flex contents は一意 id を持たず、並び順が実質的な識別子になる
+
+import { Plus } from "lucide-react";
 import type React from "react";
 import { createContext, useContext, useState } from "react";
 import { FlexComponentRenderer } from "../../../components/FlexComponentRenderer";
@@ -7,6 +9,7 @@ import { containsLockedUri } from "../../../editor/lockedUris";
 import { nodeLabel } from "../../../editor/path";
 import type { FlexNodePath, FlexSection } from "../../../editor/types";
 import type { FlexBox, FlexBubble, FlexComponentType } from "../../../types";
+import { cn } from "../ui/utils";
 import { kindIcon, w } from "./theme";
 import type { FlexDoc } from "./useFlexDoc";
 
@@ -230,10 +233,13 @@ function EditableText({
 /**
  * 挿入スロット（box の子の間 / 末尾に置く「＋」ゾタン）。
  */
+/**
+ * 挿入スロット — Tailwind UI「Divider with button」パターン。
+ * 普段は薄い罫線、ホバー/フォーカスで中央の ＋ ピルが強調される。
+ */
 function InsertSlot({
 	doc,
 	parentPath,
-	insertAt,
 	direction,
 }: {
 	doc: FlexDoc;
@@ -241,43 +247,40 @@ function InsertSlot({
 	insertAt: number;
 	direction: "vertical" | "horizontal";
 }) {
-	const [hover, setHover] = useState(false);
+	const isVertical = direction === "vertical";
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: 罫線+pill の複合ヒット領域（背景飾りを含む）
 		<button
 			type="button"
-			style={{
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
-				[direction === "vertical" ? "height" : "width"]: hover ? 18 : 8,
-				[direction === "vertical" ? "width" : "height"]: "100%",
-				borderRadius: 4,
-				margin: direction === "vertical" ? "1px 0" : "0 1px",
-				transition: "all .12s ease",
-				cursor: "pointer",
-			}}
+			aria-label="ここにテキストを追加"
+			title="ここにテキストを追加"
 			onClick={(e) => {
 				e.stopPropagation();
 				doc.select(parentPath);
 				doc.insert(parentPath, "text");
-				void insertAt;
 			}}
-			onMouseEnter={() => setHover(true)}
-			onMouseLeave={() => setHover(false)}
-			title="ここにテキストを追加"
-		>
-			{hover && (
-				<span
-					style={{
-						fontSize: 10,
-						color: w.green,
-						fontWeight: 700,
-						whiteSpace: "nowrap",
-					}}
-				>
-					＋ 追加
-				</span>
+			className={cn(
+				"group relative flex cursor-pointer items-center justify-center transition-all duration-150 opacity-40 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary",
+				isVertical ? "h-7 w-full" : "h-full min-w-7",
 			)}
+		>
+			{/* Divider 罫線 */}
+			<div
+				aria-hidden
+				className={cn(
+					"bg-border",
+					isVertical
+						? "absolute inset-x-0 top-1/2 h-px -translate-y-1/2"
+						: "absolute inset-y-0 left-1/2 w-px -translate-x-1/2",
+				)}
+			/>
+			{/* 中央の ＋ pill */}
+			<span className="relative inline-flex items-center justify-center rounded-full bg-white px-2 py-1 shadow-xs inset-ring inset-ring-border transition-transform duration-150 group-hover:scale-110 group-hover:inset-ring-primary/50 group-hover:shadow-md">
+				<Plus
+					aria-hidden
+					className="size-4 text-muted-foreground group-hover:text-primary"
+				/>
+			</span>
 		</button>
 	);
 }
