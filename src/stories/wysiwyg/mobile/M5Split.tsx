@@ -8,7 +8,7 @@ import { WysiwygInspector } from "../core/WysiwygInspector";
 import {
 	MobilePreview,
 	MobileShell,
-	TapToPlaceLayer,
+	makePlaceHandler,
 	useContainerLayout,
 } from "./MobileShared";
 
@@ -46,7 +46,21 @@ export function MobileSplit({ initial }: { initial: FlexBubble }) {
 					borderBottom: `1px solid ${w.border}`,
 				}}
 			>
-				<MobilePreview doc={doc} width="100%" />
+				<MobilePreview
+					doc={doc}
+					width="100%"
+					tapToPlace={
+						insertKind
+							? {
+									kind: insertKind,
+									label: "置く場所をタップ",
+									onPlace: makePlaceHandler(doc, insertKind, () =>
+										setInsertKind(null),
+									),
+								}
+							: null
+					}
+				/>
 			</div>
 
 			{/* 下: 編集（パレット or 選択部品の設定） */}
@@ -238,16 +252,6 @@ export function MobileSplit({ initial }: { initial: FlexBubble }) {
 					)}
 				</div>
 			</div>
-
-			{/* 挿入モード: 上のプレビューにガイド */}
-			{insertKind && (
-				<TapToPlaceLayer
-					doc={doc}
-					kind={insertKind}
-					onDone={() => setInsertKind(null)}
-					label="上のプレビューで置く場所をタップ"
-				/>
-			)}
 		</MobileShell>
 	);
 }

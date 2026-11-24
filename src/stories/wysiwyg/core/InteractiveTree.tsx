@@ -9,7 +9,11 @@ import { FlexComponentRenderer } from "../../../components/FlexComponentRenderer
 import { BUBBLE_WIDTH, SPACING } from "../../../constants";
 import { containsLockedUri } from "../../../editor/lockedUris";
 import { nodeLabel } from "../../../editor/path";
-import type { FlexNodePath, FlexSection } from "../../../editor/types";
+import type {
+	FlexNodePath,
+	FlexSection,
+	InsertableKind,
+} from "../../../editor/types";
 import type { FlexBox, FlexBubble, FlexComponentType } from "../../../types";
 import { cn } from "../ui/utils";
 import { kindIcon, w } from "./theme";
@@ -26,6 +30,14 @@ import type { FlexDoc } from "./useFlexDoc";
 
 /** ドラッグ中のドロップ先ハイライト（パレット DnD 用） */
 const DropTargetContext = createContext<FlexNodePath | null>(null);
+
+/** タップ・トゥ・プレイス（挿入モード）。box 自身の上に＋ガイドを重ねるのでスクロールに追随する */
+interface TapToPlaceState {
+	kind: InsertableKind;
+	label?: string;
+	onPlace: (path: FlexNodePath) => void;
+}
+const TapToPlaceContext = createContext<TapToPlaceState | null>(null);
 
 /** ポインタ操作中のドロップ先判定: elementFromPoint から data 属性で box を探す */
 export function findDropTargetFromPoint(
@@ -56,6 +68,8 @@ interface NodeWrapProps {
 function NodeWrap({ path, node, doc, interactive, children }: NodeWrapProps) {
 	const [hover, setHover] = useState(false);
 	const dropTarget = useContext(DropTargetContext);
+	const tapToPlace = useContext(TapToPlaceContext);
+	const showTapToPlace = tapToPlace !== null && node.type === "box";
 	const isDropTarget =
 		dropTarget !== null &&
 		dropTarget.section === path.section &&
@@ -109,6 +123,22 @@ function NodeWrap({ path, node, doc, interactive, children }: NodeWrapProps) {
 			onMouseLeave={() => setHover(false)}
 		>
 			{children}
+			{showTapToPlace && tapToPlace && (
+				<button
+					type="button"
+					aria-label="ここに追加"
+					onClick={(e) => {
+						e.stopPropagation();
+						tapToPlace.onPlace(path);
+					}}
+					className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-primary bg-primary/10 backdrop-blur-[1px] transition-transform duration-150 active:scale-[0.98]"
+				>
+					<span className="relative inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-foreground shadow-md inset-ring inset-ring-primary/60">
+						<Plus aria-hidden className="size-4 text-primary" />
+						{tapToPlace.label ?? "追加"}
+					</span>
+				</button>
+			)}
 			{(isSelected || hover) && (
 				<span
 					style={{
@@ -515,6 +545,8 @@ export interface InteractiveTreeProps {
 	onAddSection?: (section: FlexSection) => void;
 	/** ドラッグ中のドロップ先 box（その box を緑枠で強調する） */
 	activeDropPath?: FlexNodePath | null;
+	/** タップ・トゥ・プレイス（挿入モード）。box の上に＋ガイドを重ねる */
+	tapToPlace?: TapToPlaceState | null;
 }
 
 export function InteractiveTree({
@@ -523,6 +555,7 @@ export function InteractiveTree({
 	width = "100%",
 	onAddSection,
 	activeDropPath = null,
+	tapToPlace = null,
 }: InteractiveTreeProps) {
 	const bubble = doc.bubble;
 	const bodyBg = bubble.styles?.body?.backgroundColor;
@@ -531,67 +564,69 @@ export function InteractiveTree({
 
 	return (
 		<DropTargetContext.Provider value={activeDropPath}>
-			{/* biome-ignore lint/a11y/noStaticElementInteractions: キャンバス背景クリックで選択解除（標準的なキャンバス操作） */}
-			<div
-				onClick={() => doc.select(null)}
-				onKeyDown={(e) => {
-					if (e.key === "Escape") doc.select(null);
-				}}
-				role="presentation"
-				style={{
-					width,
-					// bubble の LINE 実機幅で最大（見た目はそのままに狭いコンテナへ収める）
-					maxWidth: BUBBLE_WIDTH[doc.bubble.size ?? "mega"] ?? undefined,
-					boxSizing: "border-box",
-					borderRadius: 16,
-					overflow: "hidden",
-					backgroundColor: "#ffffff",
-					boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
-					fontFamily:
-						'-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial, sans-serif',
-				}}
-			>
-				{SECTION_ORDER.map((section) => {
-					const node = bubble[section];
-					if (!node) {
-						return interactive ? (
-							<SectionView
-								key={section}
-								section={section}
-								bubble={bubble}
-								doc={doc}
-								interactive={interactive}
-								onAddSection={onAddSection}
-							/>
-						) : null;
-					}
-					return (
-						<div
-							key={section}
-							style={{
-								backgroundColor:
-									section === "header"
-										? headerBg
-										: section === "body"
-											? bodyBg
-											: section === "footer"
-												? footerBg
-												: undefined,
-							}}
-						>
-							<div style={{ padding: SECTION_PADDING[section] }}>
+			<TapToPlaceContext.Provider value={tapToPlace}>
+				{/* biome-ignore lint/a11y/noStaticElementInteractions: キャンバス背景クリックで選択解除（標準的なキャンバス操作） */}
+				<div
+					onClick={() => doc.select(null)}
+					onKeyDown={(e) => {
+						if (e.key === "Escape") doc.select(null);
+					}}
+					role="presentation"
+					style={{
+						width,
+						// bubble の LINE 実機幅で最大（見た目はそのままに狭いコンテナへ収める）
+						maxWidth: BUBBLE_WIDTH[doc.bubble.size ?? "mega"] ?? undefined,
+						boxSizing: "border-box",
+						borderRadius: 16,
+						overflow: "hidden",
+						backgroundColor: "#ffffff",
+						boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
+						fontFamily:
+							'-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial, sans-serif',
+					}}
+				>
+					{SECTION_ORDER.map((section) => {
+						const node = bubble[section];
+						if (!node) {
+							return interactive ? (
 								<SectionView
+									key={section}
 									section={section}
 									bubble={bubble}
 									doc={doc}
 									interactive={interactive}
 									onAddSection={onAddSection}
 								/>
+							) : null;
+						}
+						return (
+							<div
+								key={section}
+								style={{
+									backgroundColor:
+										section === "header"
+											? headerBg
+											: section === "body"
+												? bodyBg
+												: section === "footer"
+													? footerBg
+													: undefined,
+								}}
+							>
+								<div style={{ padding: SECTION_PADDING[section] }}>
+									<SectionView
+										section={section}
+										bubble={bubble}
+										doc={doc}
+										interactive={interactive}
+										onAddSection={onAddSection}
+									/>
+								</div>
 							</div>
-						</div>
-					);
-				})}
-			</div>
+						);
+					})}
+				</div>
+			</TapToPlaceContext.Provider>
 		</DropTargetContext.Provider>
 	);
 }

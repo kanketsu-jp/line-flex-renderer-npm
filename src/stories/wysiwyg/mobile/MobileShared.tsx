@@ -304,10 +304,12 @@ export function MobilePreview({
 	doc,
 	width = "100%",
 	activeDropPath,
+	tapToPlace,
 }: {
 	doc: ReturnType<typeof useFlexDoc>;
 	width?: number | string;
 	activeDropPath?: FlexNodePath | null;
+	tapToPlace?: TapToPlaceProps | null;
 }) {
 	return (
 		<InteractiveTree
@@ -315,6 +317,15 @@ export function MobilePreview({
 			width={width}
 			activeDropPath={activeDropPath}
 			onAddSection={(s) => doc.replace(ensureSection(doc.bubble, s))}
+			tapToPlace={
+				tapToPlace
+					? {
+							kind: tapToPlace.kind,
+							label: tapToPlace.label,
+							onPlace: tapToPlace.onPlace,
+						}
+					: null
+			}
 		/>
 	);
 }
@@ -390,104 +401,29 @@ export function BottomSheet({
 	);
 }
 
-/** 共通: タップで配置レイヤー（挿入モード。box の位置に＋ガイドを重ねる） */
-export function TapToPlaceLayer({
-	doc,
-	kind,
-	onDone,
-	label,
-}: {
-	doc: ReturnType<typeof useFlexDoc>;
+/** タップ・トゥ・プレイス: 指定 box の末尾に kind を挿入して挿入モードを終了する */
+export function makePlaceHandler(
+	doc: ReturnType<typeof useFlexDoc>,
+	kind: InsertableKind,
+	onDone: () => void,
+) {
+	return (path: FlexNodePath) => {
+		doc.replace(insertNode(doc.bubble, path, kind));
+		onDone();
+	};
+}
+
+/** タップ・トゥ・プレイスの設定（MobilePreview / InteractiveTree へ渡す） */
+export interface TapToPlaceProps {
 	kind: InsertableKind;
-	onDone: () => void;
 	label?: string;
-}) {
-	const targets = Array.from(
-		document.querySelectorAll<HTMLElement>("[data-flex-type='box']"),
-	);
-	return (
-		<div
-			style={{
-				position: "absolute",
-				inset: 0,
-				zIndex: 40,
-				pointerEvents: "none",
-			}}
-		>
-			{label && (
-				<div
-					role="status"
-					style={{
-						position: "absolute",
-						top: 8,
-						left: "50%",
-						transform: "translateX(-50%)",
-						backgroundColor: w.green,
-						color: w.white,
-						fontSize: 12,
-						fontWeight: 700,
-						borderRadius: 999,
-						padding: "6px 14px",
-						whiteSpace: "nowrap",
-						maxWidth: "92%",
-					}}
-				>
-					{label}
-				</div>
-			)}
-			{targets.map((el) => {
-				const rect = el.getBoundingClientRect();
-				const host = el.closest("[data-mobile-shell]")?.getBoundingClientRect();
-				if (!host) return null;
-				const key = el.dataset.flexPath ?? el.dataset.flexType ?? "";
-				return (
-					<button
-						key={key}
-						type="button"
-						aria-label="ここに追加"
-						onClick={(e) => {
-							e.stopPropagation();
-							const path = JSON.parse(
-								el.dataset.flexPath ?? "{}",
-							) as FlexNodePath;
-							let bubble = doc.bubble;
-							if (!bubble[path.section]) {
-								bubble = {
-									...bubble,
-									[path.section]: {
-										type: "box",
-										layout: "vertical",
-										contents: [],
-									},
-								};
-							}
-							doc.replace(insertNode(bubble, path, kind));
-							onDone();
-						}}
-						style={{
-							position: "absolute",
-							left: rect.left - host.left,
-							top: rect.top - host.top,
-							width: rect.width,
-							height: rect.height,
-							border: `2px dashed ${w.green}`,
-							borderRadius: 8,
-							backgroundColor: "rgba(6,199,85,0.12)",
-							pointerEvents: "auto",
-							cursor: "pointer",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							fontSize: 22,
-							color: w.green,
-							fontWeight: 700,
-							fontFamily: font,
-						}}
-					>
-						＋
-					</button>
-				);
-			})}
-		</div>
-	);
+	onPlace: (path: FlexNodePath) => void;
+}
+
+/**
+ * @deprecated 旧 DOM 測定版はスクロールでズレるため廃止。
+ * MobilePreview の tapToPlace props を使うこと（box 自身にガイドが重なりスクロールに追随）。
+ */
+export function TapToPlaceLayer(_props: unknown): null {
+	return null;
 }

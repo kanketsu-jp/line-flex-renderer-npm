@@ -9,8 +9,8 @@ import {
 	BottomSheet,
 	MobilePreview,
 	MobileShell,
+	makePlaceHandler,
 	PaletteBar,
-	TapToPlaceLayer,
 } from "./MobileShared";
 
 /**
@@ -49,7 +49,21 @@ export function MobileCanvas({ initial }: { initial: FlexBubble }) {
 					alignItems: "center",
 				}}
 			>
-				<MobilePreview doc={doc} width="100%" />
+				<MobilePreview
+					doc={doc}
+					width="100%"
+					tapToPlace={
+						insertKind
+							? {
+									kind: insertKind,
+									label: `${kindLabel[insertKind]}を置く場所をタップ`,
+									onPlace: makePlaceHandler(doc, insertKind, () =>
+										setInsertKind(null),
+									),
+								}
+							: null
+					}
+				/>
 			</div>
 
 			{/* 選択中部品のコンテキストバー */}
@@ -120,14 +134,6 @@ export function MobileCanvas({ initial }: { initial: FlexBubble }) {
 			</div>
 
 			{/* 挿入モード: box をタップして配置 */}
-			{insertKind && (
-				<TapToPlaceLayer
-					doc={doc}
-					kind={insertKind}
-					onDone={() => setInsertKind(null)}
-					label={`${kindLabel[insertKind]}を置く場所をタップ`}
-				/>
-			)}
 
 			{/* 設定シート */}
 			{sheetOpen && selectedNode && doc.selected && (

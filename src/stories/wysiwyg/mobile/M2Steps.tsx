@@ -10,8 +10,8 @@ import {
 	BottomSheet,
 	MobilePreview,
 	MobileShell,
+	makePlaceHandler,
 	PaletteBar,
-	TapToPlaceLayer,
 } from "./MobileShared";
 
 /**
@@ -103,7 +103,21 @@ export function MobileSteps({ initial }: { initial: FlexBubble }) {
 							</div>
 						)}
 						<div style={{ display: "flex", justifyContent: "center" }}>
-							<MobilePreview doc={doc} width="100%" />
+							<MobilePreview
+								doc={doc}
+								width="100%"
+								tapToPlace={
+									pickKind
+										? {
+												kind: pickKind,
+												label: "追加する場所をタップ",
+												onPlace: makePlaceHandler(doc, pickKind, () =>
+													setPickKind(null),
+												),
+											}
+										: null
+								}
+							/>
 						</div>
 					</div>
 				)}
@@ -217,16 +231,6 @@ export function MobileSteps({ initial }: { initial: FlexBubble }) {
 					次へ →
 				</button>
 			</nav>
-
-			{/* Step2 の追加先選択 */}
-			{step === 1 && pickKind && (
-				<TapToPlaceLayer
-					doc={doc}
-					kind={pickKind}
-					onDone={() => setPickKind(null)}
-					label="追加する場所をタップ"
-				/>
-			)}
 
 			{/* Step3 の設定シート */}
 			{sheetOpen && selectedNode && doc.selected && (

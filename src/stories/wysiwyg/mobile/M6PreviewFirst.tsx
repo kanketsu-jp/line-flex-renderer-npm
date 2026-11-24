@@ -29,7 +29,7 @@ import { cn } from "../ui/utils";
 import {
 	MobilePreview,
 	MobileShell,
-	TapToPlaceLayer,
+	makePlaceHandler,
 	useContainerLayout,
 } from "./MobileShared";
 
@@ -147,7 +147,21 @@ export function MobilePreviewFirst({ initial }: { initial: FlexBubble }) {
 
 					{/* プレビュー */}
 					<div className="flex flex-1 justify-center overflow-y-auto p-3 pb-4">
-						<MobilePreview doc={doc} width="100%" />
+						<MobilePreview
+							doc={doc}
+							width="100%"
+							tapToPlace={
+								insertKind
+									? {
+											kind: insertKind,
+											label: `${KINDS.find((k) => k.kind === insertKind)?.label ?? ""}を置く場所をタップ`,
+											onPlace: makePlaceHandler(doc, insertKind, () =>
+												setInsertKind(null),
+											),
+										}
+									: null
+							}
+						/>
 					</div>
 
 					{/* 選択中の部品バー */}
@@ -236,16 +250,6 @@ export function MobilePreviewFirst({ initial }: { initial: FlexBubble }) {
 							</button>
 						))}
 					</div>
-
-					{/* タップ・トゥ・プレイス */}
-					{insertKind && (
-						<TapToPlaceLayer
-							doc={doc}
-							kind={insertKind}
-							onDone={() => setInsertKind(null)}
-							label={`${KINDS.find((k) => k.kind === insertKind)?.label ?? ""}を置く場所をタップ`}
-						/>
-					)}
 				</div>
 			)}
 

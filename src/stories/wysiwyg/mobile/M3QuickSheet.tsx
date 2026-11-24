@@ -9,7 +9,7 @@ import {
 	BottomSheet,
 	MobilePreview,
 	MobileShell,
-	TapToPlaceLayer,
+	makePlaceHandler,
 } from "./MobileShared";
 
 /**
@@ -48,7 +48,21 @@ export function MobileQuickSheet({ initial }: { initial: FlexBubble }) {
 					justifyContent: "center",
 				}}
 			>
-				<MobilePreview doc={doc} width="100%" />
+				<MobilePreview
+					doc={doc}
+					width="100%"
+					tapToPlace={
+						insertKind
+							? {
+									kind: insertKind,
+									label: "置く場所をタップ",
+									onPlace: makePlaceHandler(doc, insertKind, () =>
+										setInsertKind(null),
+									),
+								}
+							: null
+					}
+				/>
 			</div>
 
 			{/* 選択中の部品 → フローティングメニュー */}
@@ -198,15 +212,6 @@ export function MobileQuickSheet({ initial }: { initial: FlexBubble }) {
 						</div>
 					</div>
 				</div>
-			)}
-
-			{/* 挿入モード: box をタップして配置 */}
-			{insertKind && (
-				<TapToPlaceLayer
-					doc={doc}
-					kind={insertKind}
-					onDone={() => setInsertKind(null)}
-				/>
 			)}
 
 			{/* 設定シート */}
