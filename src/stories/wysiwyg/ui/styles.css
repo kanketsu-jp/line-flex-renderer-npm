@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Tailwind v4 は CSS の所在ディレクトリ配下しか自動スキャンしないため、
+   src 全体（stories/components/editor）と .storybook を明示的にソースに含める */
+@source "../../../";
+@source "../../../../.storybook";
+
 /* shadcn/ui デザイントークン（LINE Green ベース・ニュートラル階調つき） */
 :root {
 	--background: oklch(1 0 0);

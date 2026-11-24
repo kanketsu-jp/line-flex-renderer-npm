@@ -1,6 +1,8 @@
 // biome-ignore-all lint/suspicious/noArrayIndexKey: Flex contents は一意 id を持たず、並び順が実質的な識別子になる
 
 import { Plus } from "lucide-react";
+// 全案（A〜E / M1〜M6）がこのツリーを経由するため、ここで shadcn テーマを読む
+import "../ui/styles.css";
 import type React from "react";
 import { createContext, useContext, useState } from "react";
 import { FlexComponentRenderer } from "../../../components/FlexComponentRenderer";
