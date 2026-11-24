@@ -215,7 +215,8 @@ export function FlexWysiwygEditor({
 				</div>
 				{!narrow && !previewMode && (
 					<aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-l bg-background">
-						{editOpen && selectedNode && doc.selected ? (
+						{/* PC は選択したら即インスペクタ表示（SP のシートは従来どおり編集ボタン経由） */}
+						{selectedNode && doc.selected ? (
 							<div className="p-3">
 								<div className="mb-2 flex items-center gap-2">
 									<Badge variant="outline" className="max-w-56 truncate">
