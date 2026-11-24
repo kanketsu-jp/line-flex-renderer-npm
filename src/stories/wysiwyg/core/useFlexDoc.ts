@@ -41,10 +41,14 @@ export interface FlexDoc {
 
 const HISTORY_LIMIT = 100;
 
+/** onChange: すべての確定操作（commit/undo/redo）後に最新 bubble で呼ばれる */
 export function useFlexDoc(
 	initial: FlexBubble,
 	lockedUris?: string[],
+	onChange?: (bubble: FlexBubble) => void,
 ): FlexDoc {
+	const onChangeRef = useRef(onChange);
+	onChangeRef.current = onChange;
 	const [bubble, setBubble] = useState<FlexBubble>(initial);
 	const [selected, setSelected] = useState<FlexNodePath | null>(null);
 	const [lastError, setLastError] = useState<string | null>(null);
@@ -73,6 +77,7 @@ export function useFlexDoc(
 			futureRef.current = [];
 			syncHistoryDepth();
 			setBubble(next);
+			onChangeRef.current?.(next);
 			if (!opts?.keepSelection) {
 				setSelected(null);
 			}
@@ -88,6 +93,7 @@ export function useFlexDoc(
 		setSelected(null);
 		setLastError(null);
 		syncHistoryDepth();
+		onChangeRef.current?.(prev);
 	}, [bubble, syncHistoryDepth]);
 
 	const redo = useCallback(() => {
@@ -98,6 +104,7 @@ export function useFlexDoc(
 		setSelected(null);
 		setLastError(null);
 		syncHistoryDepth();
+		onChangeRef.current?.(next);
 	}, [bubble, syncHistoryDepth]);
 
 	const duplicate = useCallback(

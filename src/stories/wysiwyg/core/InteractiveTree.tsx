@@ -31,6 +31,11 @@ import type { FlexDoc } from "./useFlexDoc";
 /** ドラッグ中のドロップ先ハイライト（パレット DnD 用） */
 const DropTargetContext = createContext<FlexNodePath | null>(null);
 
+/** Divider の＋を押したとき: 部品選択シートを開くためのコールバック */
+const SlotClickContext = createContext<
+	((parentPath: FlexNodePath, index: number) => void) | null
+>(null);
+
 /** タップ・トゥ・プレイス（挿入モード）。box 自身の上に＋ガイドを重ねるのでスクロールに追随する */
 interface TapToPlaceState {
 	kind: InsertableKind;
@@ -272,6 +277,7 @@ function EditableText({
 function InsertSlot({
 	doc,
 	parentPath,
+	insertAt,
 	direction,
 }: {
 	doc: FlexDoc;
@@ -280,14 +286,20 @@ function InsertSlot({
 	direction: "vertical" | "horizontal";
 }) {
 	const isVertical = direction === "vertical";
+	const onSlotClick = useContext(SlotClickContext);
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: 罫線+pill の複合ヒット領域（背景飾りを含む）
 		<button
 			type="button"
-			aria-label="ここにテキストを追加"
-			title="ここにテキストを追加"
+			aria-label="ここに部品を追加"
+			title="ここに部品を追加"
 			onClick={(e) => {
 				e.stopPropagation();
+				if (onSlotClick) {
+					// ＋を押した位置で部品選択シートを開く（挿入はシート選択後）
+					onSlotClick(parentPath, insertAt);
+					return;
+				}
 				doc.select(parentPath);
 				doc.insert(parentPath, "text");
 			}}
@@ -547,6 +559,8 @@ export interface InteractiveTreeProps {
 	activeDropPath?: FlexNodePath | null;
 	/** タップ・トゥ・プレイス（挿入モード）。box の上に＋ガイドを重ねる */
 	tapToPlace?: TapToPlaceState | null;
+	/** Divider の＋押下時に開く部品選択シート用コールバック（parentPath と挿入 index） */
+	onSlotClick?: (parentPath: FlexNodePath, index: number) => void;
 }
 
 export function InteractiveTree({
@@ -556,6 +570,7 @@ export function InteractiveTree({
 	onAddSection,
 	activeDropPath = null,
 	tapToPlace = null,
+	onSlotClick,
 }: InteractiveTreeProps) {
 	const bubble = doc.bubble;
 	const bodyBg = bubble.styles?.body?.backgroundColor;
@@ -565,67 +580,69 @@ export function InteractiveTree({
 	return (
 		<DropTargetContext.Provider value={activeDropPath}>
 			<TapToPlaceContext.Provider value={tapToPlace}>
-				{/* biome-ignore lint/a11y/noStaticElementInteractions: キャンバス背景クリックで選択解除（標準的なキャンバス操作） */}
-				<div
-					onClick={() => doc.select(null)}
-					onKeyDown={(e) => {
-						if (e.key === "Escape") doc.select(null);
-					}}
-					role="presentation"
-					style={{
-						width,
-						// bubble の LINE 実機幅で最大（見た目はそのままに狭いコンテナへ収める）
-						maxWidth: BUBBLE_WIDTH[doc.bubble.size ?? "mega"] ?? undefined,
-						boxSizing: "border-box",
-						borderRadius: 16,
-						overflow: "hidden",
-						backgroundColor: "#ffffff",
-						boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
-						fontFamily:
-							'-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial, sans-serif',
-					}}
-				>
-					{SECTION_ORDER.map((section) => {
-						const node = bubble[section];
-						if (!node) {
-							return interactive ? (
-								<SectionView
-									key={section}
-									section={section}
-									bubble={bubble}
-									doc={doc}
-									interactive={interactive}
-									onAddSection={onAddSection}
-								/>
-							) : null;
-						}
-						return (
-							<div
-								key={section}
-								style={{
-									backgroundColor:
-										section === "header"
-											? headerBg
-											: section === "body"
-												? bodyBg
-												: section === "footer"
-													? footerBg
-													: undefined,
-								}}
-							>
-								<div style={{ padding: SECTION_PADDING[section] }}>
+				<SlotClickContext.Provider value={onSlotClick ?? null}>
+					{/* biome-ignore lint/a11y/noStaticElementInteractions: キャンバス背景クリックで選択解除（標準的なキャンバス操作） */}
+					<div
+						onClick={() => doc.select(null)}
+						onKeyDown={(e) => {
+							if (e.key === "Escape") doc.select(null);
+						}}
+						role="presentation"
+						style={{
+							width,
+							// bubble の LINE 実機幅で最大（見た目はそのままに狭いコンテナへ収める）
+							maxWidth: BUBBLE_WIDTH[doc.bubble.size ?? "mega"] ?? undefined,
+							boxSizing: "border-box",
+							borderRadius: 16,
+							overflow: "hidden",
+							backgroundColor: "#ffffff",
+							boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
+							fontFamily:
+								'-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial, sans-serif',
+						}}
+					>
+						{SECTION_ORDER.map((section) => {
+							const node = bubble[section];
+							if (!node) {
+								return interactive ? (
 									<SectionView
+										key={section}
 										section={section}
 										bubble={bubble}
 										doc={doc}
 										interactive={interactive}
 										onAddSection={onAddSection}
 									/>
+								) : null;
+							}
+							return (
+								<div
+									key={section}
+									style={{
+										backgroundColor:
+											section === "header"
+												? headerBg
+												: section === "body"
+													? bodyBg
+													: section === "footer"
+														? footerBg
+														: undefined,
+									}}
+								>
+									<div style={{ padding: SECTION_PADDING[section] }}>
+										<SectionView
+											section={section}
+											bubble={bubble}
+											doc={doc}
+											interactive={interactive}
+											onAddSection={onAddSection}
+										/>
+									</div>
 								</div>
-							</div>
-						);
-					})}
-				</div>
+							);
+						})}
+					</div>
+				</SlotClickContext.Provider>
 			</TapToPlaceContext.Provider>
 		</DropTargetContext.Provider>
 	);
