@@ -25,7 +25,7 @@ function SheetContent({
 	side = "bottom",
 	...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
-	side?: "bottom" | "top";
+	side?: "bottom" | "top" | "right";
 }) {
 	return (
 		<SheetPrimitive.Portal>
@@ -41,6 +41,8 @@ function SheetContent({
 						"inset-x-0 bottom-0 rounded-t-2xl border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
 					side === "top" &&
 						"inset-x-0 top-0 rounded-b-2xl border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
+					side === "right" &&
+						"inset-y-0 right-0 h-full w-80 max-w-[85vw] rounded-l-2xl border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
 					className,
 				)}
 				{...props}
