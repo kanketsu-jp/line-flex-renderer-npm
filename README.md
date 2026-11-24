@@ -76,6 +76,27 @@ Renders a plain text message bubble.
 <LineTextBubble text="Hello!" />
 ```
 
+### FlexWysiwygEditor（WYSIWYG エディタ・開発中）
+
+レイヤー上で直接操作する次世代エディタ。プレビューと編集が一体化し、
+モバイル（ボトムシート）と PC（右パネル）の両レイアウトをコンテナ幅で自動切替します。
+
+```tsx
+import { FlexWysiwygEditor } from 'line-flex-message-renderer';
+// ※ 2026-11 時点ではブランチ feat/wysiwyg-concepts に存在（本番昇格準備中）
+
+<FlexWysiwygEditor
+  value={bubble}
+  onChange={(next) => setBubble(next)}
+  preview={mode === 'preview'}
+>
+  <MyNavButtons />  {/* 戻る/保存などは呼び出し側が自由に配置 */}
+</FlexWysiwygEditor>
+```
+
+詳細な引き継ぎ情報（残作業・設計原則・ハマりポイント）は
+[docs/HANDOFF-wysiwyg.md](./docs/HANDOFF-wysiwyg.md) を参照。
+
 ### FlexEditor
 
 Interactive WYSIWYG editor for LINE Flex Messages with live preview, component outline tree, and property inspectors.

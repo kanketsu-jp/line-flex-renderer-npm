@@ -26,6 +26,13 @@ LINE Flex Message の仕様について質問された場合や、それらに�
 | Flex Message コンポーネント | [Flex Message elements](https://developers.line.biz/en/reference/messaging-api/#flex-message-elements) |
 | Flex Message Simulator | [LINE Flex Message Simulator](https://developers.line.biz/flex-simulator/) |
 
+## WYSIWYG エディタ（進行中の大型機能）
+
+- 現在 `src/stories/wysiwyg/`（プロトタイプ配置）に統合エディタがある。**引き継ぎは必ず `docs/HANDOFF-wysiwyg.md` から読む**
+- エディタ UI は Tailwind v4 + shadcn（Storybook スコープで導入済み）。renderer は CSS-in-JS・zero-dep のまま変えない
+- 編集モデルは FlexBubble 単一。既存 `src/editor/path.ts` の純関数を再利用
+- UI/UX 変更は `docs/skills/ui-ux-best-practices/SKILL.md` の 8 原則を通すこと
+
 ## 技術スタック
 
 - **Language**: TypeScript
