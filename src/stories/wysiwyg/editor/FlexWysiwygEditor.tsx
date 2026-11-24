@@ -62,6 +62,8 @@ export interface FlexWysiwygEditorProps {
 	lockedUris?: string[];
 	/** 下部領域（戻る/次へなど、呼び出し側が自由に配置） */
 	children?: React.ReactNode;
+	/** プレビューモード（呼び出し側のタブから制御。未指定なら false） */
+	preview?: boolean;
 	className?: string;
 	style?: React.CSSProperties;
 }
@@ -72,6 +74,7 @@ export function FlexWysiwygEditor({
 	onImageUpload,
 	lockedUris,
 	children,
+	preview = false,
 	className,
 	style,
 }: FlexWysiwygEditorProps) {
@@ -91,6 +94,8 @@ export function FlexWysiwygEditor({
 	} | null>(null);
 	// 編集シート
 	const [editOpen, setEditOpen] = useState(false);
+	// プレビューモード（編集不可の表示専用。呼び出し側のタブから制御）
+	const previewMode = preview;
 
 	const selectedNode = doc.selected
 		? getNode(doc.bubble, doc.selected)
@@ -166,7 +171,7 @@ export function FlexWysiwygEditor({
 			{/* ヘッダー: undo / redo */}
 			<header className="flex shrink-0 items-center gap-1 border-b bg-background px-2 py-1.5">
 				<Badge variant="secondary" className="mx-1 h-6 whitespace-nowrap">
-					部品を足す
+					{previewMode ? "プレビュー" : "部品を足す"}
 				</Badge>
 				<div className="flex-1" />
 				<Button
@@ -208,7 +213,7 @@ export function FlexWysiwygEditor({
 						}
 					/>
 				</div>
-				{!narrow && (
+				{!narrow && !previewMode && (
 					<aside className="flex w-80 shrink-0 flex-col overflow-y-auto border-l bg-background">
 						{editOpen && selectedNode && doc.selected ? (
 							<div className="p-3">
@@ -236,7 +241,7 @@ export function FlexWysiwygEditor({
 			</div>
 
 			{/* 選択中部品バー: 編集 / 削除 */}
-			{selectedNode && doc.selected && (
+			{selectedNode && doc.selected && !previewMode && (
 				<div
 					role="toolbar"
 					aria-label="選択した部品の操作"

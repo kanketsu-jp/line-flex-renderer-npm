@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { FlexWysiwygEditor } from "./wysiwyg/editor/FlexWysiwygEditor";
-import { WizardDemo } from "./wysiwyg/editor/WizardDemo";
 
 /**
  * 採用案 — モバイル(M2 洗練版) と PC(案A 洗練版) を 1 コンポーネントに統合した WYSIWYG エディタ。
@@ -20,15 +19,6 @@ const meta: Meta<typeof FlexWysiwygEditor> = {
 export default meta;
 type Story = StoryObj<typeof FlexWysiwygEditor>;
 
-/** ウィザード全体（テンプレ選択 → エディタ → 仕上げ）。ツールバーの viewport で SP/PC を切替 */
-const wizardMeta: Meta<typeof WizardDemo> = {
-	title: "WysiwygEditor/ウィザード デモ（呼び出し側込み）",
-	component: WizardDemo,
-	parameters: { layout: "fullscreen" },
-};
-
-export { wizardMeta };
-
 export const Editor: Story = {
 	render: () => (
 		<FlexWysiwygEditor
@@ -43,8 +33,4 @@ export const Editor: Story = {
 			}}
 		/>
 	),
-};
-
-export const Wizard = {
-	render: () => <WizardDemo />,
 };
