@@ -28,12 +28,12 @@ export interface FlexDoc {
 	select: (path: FlexNodePath | null) => void;
 	patch: (path: FlexNodePath, patch: Record<string, unknown>) => void;
 	insert: (parentPath: FlexNodePath, kind: InsertableKind) => void;
-	/** 指定 index の位置に挿入（Divider の＋位置）。常に最新 bubble へ適用 */
+	/** 挿入後の bubble を返す（呼び出し側は挿入後の状態から選択位置を計算できる） */
 	insertNodeAt: (
 		parentPath: FlexNodePath,
 		kind: InsertableKind,
 		index: number,
-	) => void;
+	) => FlexBubble;
 	remove: (path: FlexNodePath) => void;
 	move: (path: FlexNodePath, delta: number) => void;
 	duplicate: (path: FlexNodePath) => void;
@@ -72,14 +72,16 @@ export function useFlexDoc(
 	const commit = useCallback(
 		(next: FlexBubble | null, opts?: { keepSelection?: boolean }) => {
 			if (!next) return;
+			// 常に最新の bubble を基準にする（非同期完了後の commit でも履歴が正しく積める = NM1）
+			const current = bubbleRef.current;
 			if (
-				countLockedUris(next, lockedUris) < countLockedUris(bubble, lockedUris)
+				countLockedUris(next, lockedUris) < countLockedUris(current, lockedUris)
 			) {
 				setLastError("このリンクは変更できません");
 				return;
 			}
 			setLastError(null);
-			pastRef.current = [...pastRef.current.slice(-HISTORY_LIMIT), bubble];
+			pastRef.current = [...pastRef.current.slice(-HISTORY_LIMIT), current];
 			futureRef.current = [];
 			syncHistoryDepth();
 			setBubble(next);
@@ -88,7 +90,7 @@ export function useFlexDoc(
 				setSelected(null);
 			}
 		},
-		[bubble, lockedUris, syncHistoryDepth],
+		[lockedUris, syncHistoryDepth],
 	);
 
 	const undo = useCallback(() => {
@@ -159,13 +161,29 @@ export function useFlexDoc(
 		canRedo: historyDepth.future > 0,
 		lastError,
 		select: setSelected,
-		patch: (path, p) =>
-			commit(patchNode(bubbleRef.current, path, p), { keepSelection: true }),
+		patch: (path, p) => {
+			// NM2: 画像の url パッチは、対象ノードがまだ image のときだけ適用する。
+			// 保留中のアップロード完了が、削除・移動でずれたパスを握っている場合を防ぐ
+			if (
+				p.url !== undefined &&
+				getNode(bubbleRef.current, path)?.type !== "image"
+			) {
+				setLastError("対象の部品が変わったため、変更を適用しませんでした");
+				return;
+			}
+			commit(patchNode(bubbleRef.current, path, p), { keepSelection: true });
+		},
 		insert,
-		insertNodeAt: (parentPath, kind, index) =>
-			commit(insertNodeAtPosition(bubbleRef.current, parentPath, kind, index), {
-				keepSelection: true,
-			}),
+		insertNodeAt: (parentPath, kind, index) => {
+			const next = insertNodeAtPosition(
+				bubbleRef.current,
+				parentPath,
+				kind,
+				index,
+			);
+			commit(next, { keepSelection: true });
+			return next;
+		},
 		remove: (path) => commit(removeNode(bubbleRef.current, path)),
 		move: (path, delta) =>
 			commit(moveNode(bubbleRef.current, path, delta), { keepSelection: true }),

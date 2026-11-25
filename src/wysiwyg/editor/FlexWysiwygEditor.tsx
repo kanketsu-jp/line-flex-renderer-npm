@@ -114,11 +114,11 @@ export function FlexWysiwygEditor({
 
 	const insertKind = (kind: InsertableKind) => {
 		if (!slotPick) return;
-		// doc.insertNodeAt は常に最新 bubble へ適用する（M6: 古いクロージャ回避）
-		doc.insertNodeAt(slotPick.parentPath, kind, slotPick.index);
+		// 挿入後の bubble を受け取り、選択位置は「挿入後の状態」から計算する（NB1）
+		const next = doc.insertNodeAt(slotPick.parentPath, kind, slotPick.index);
 		setSlotPick(null);
 		// 挿入された要素を選択状態に（編集へスムーズに誘導）
-		const parent = getNode(doc.bubble, slotPick.parentPath);
+		const parent = getNode(next, slotPick.parentPath);
 		if (parent && parent.type === "box") {
 			doc.select({
 				section: slotPick.parentPath.section,

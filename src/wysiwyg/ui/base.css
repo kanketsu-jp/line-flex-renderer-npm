@@ -30,6 +30,7 @@
 		background-color: var(--background);
 	}
 
+	.lfw-root,
 	.lfw-root *,
 	.lfw-root *::before,
 	.lfw-root *::after {

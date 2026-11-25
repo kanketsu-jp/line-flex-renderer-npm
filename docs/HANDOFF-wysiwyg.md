@@ -1,8 +1,8 @@
 # WYSIWYG エディタ移管ガイド（次のエージェント向け）
 
-最終更新: 2026-11-25 夜（**本番昇格完了 + REVIEW-2 の N1〜N5・M6・M7 修正済み**。version 1.7.0）
+最終更新: 2026-11-26（**REVIEW-3 の NB1・NM1〜NM4 修正済み（追加コミット）**。version 1.7.0・push 済み）
 対象 Issue: https://github.com/kanketsu-jp/line-flex-renderer-npm/issues/10
-ブランチ: `feat/wysiwyg-concepts`（**未 push**）
+ブランチ: `feat/wysiwyg-concepts`（**push 済み**・PR 待ち）
 
 このドキュメントは「**リポジトリを見ただけで最新状態を把握し、そのまま作業を引き継げる**」
 ことを目的とする。最初にこれを読み、次に `AGENTS.md`（基本ルール）を確認すること。
@@ -18,7 +18,7 @@
 - build: `tsup && tailwindcss … --minify && :root→.lfw-root 置換`（tsup の clean が CSS を消さない順序）
 - CSS は `.lfw-root` スコープ（preflight 廃止・トークンも配下限定・theme 変数の :root 漏れも置換で解消）
 - 依存: `@radix-ui/react-dialog` は **peerDependenciesMeta.optional**。lucide/clsx/tailwind-merge/cva はバンドル。`dependencies` は空のまま
-- 受入テスト 13 件（幅切替 / preview 編集不能+対照 / Divider＋挿入 / lockedUris PC・SP / undo / onImageUpload(PC) / **M6 アップロード競合**）。**158 件全通過**
+- 受入テスト 16 件（REVIEW-3 の P1〜P4 を含む: NB1 選択・NM1 undo 履歴・NM2 削除競合）。**162 件全通過**
 - REVIEW-2（再レビュー）の対応: N1（リセットを @layer base へ・レイヤー順序 theme<base<utilities を import 順で実現）・N2（SheetContent/SheetOverlay に lfw-root）・N3（biome css.parser.tailwindDirectives、pnpm lint 緑）・N4（後処理の件数検査 exit 1）・N5（border-color 復活）・N6（feat!→feat に amend）・N7（version 1.7.0 + CHANGELOG）・M6（useFlexDoc を bubbleRef 化、doc.insertNodeAt 追加）・M7 SP（lockedUris 伝達）
 - レビュー原文: `.temp/2026-11-25/wysiwyg-promotion-review/REVIEW.md` と `REVIEW-2.md`
 

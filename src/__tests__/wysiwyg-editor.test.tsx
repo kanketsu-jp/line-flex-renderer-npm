@@ -68,6 +68,20 @@ type TestGlobals = {
 };
 const g = () => globalThis as unknown as TestGlobals;
 
+function bothContents(): FlexBubble {
+	return {
+		type: "bubble",
+		body: {
+			type: "box",
+			layout: "vertical",
+			contents: [
+				{ type: "image", url: "https://example.com/a.png" },
+				{ type: "text", text: "元のテキスト" },
+			],
+		},
+	};
+}
+
 function setWidth(w: number) {
 	act(() => {
 		g().__setContainerWidth(w);
@@ -100,7 +114,7 @@ describe("FlexWysiwygEditor 昇格受入", () => {
 		expect(document.querySelector("aside")).not.toBeNull();
 	});
 
-	it("2. preview で編集不能: data-flex-path 無し・＋無し・Delete で onChange されない（B6 回帰）", () => {
+	it("2. preview で編集不能: data-flex-path 無し・＋無し（B6 回帰）", () => {
 		const onChange = vi.fn();
 		render(
 			<FlexWysiwygEditor value={textBubble} preview onChange={onChange} />,
@@ -109,9 +123,7 @@ describe("FlexWysiwygEditor 昇格受入", () => {
 		expect(
 			screen.queryByRole("button", { name: "ここに部品を追加" }),
 		).toBeNull();
-		// 選択ハンドラも無効
-		expect(document.querySelector("[data-flex-path]")).toBeNull();
-		// preview 中は削除の受け皿（data-flex-path を持つ部品）自体が存在しない
+		// preview 中は選択の受け皿（data-flex-path を持つ部品）自体が存在しない
 		expect(document.querySelector("[data-flex-path]")).toBeNull();
 	});
 
@@ -127,17 +139,7 @@ describe("FlexWysiwygEditor 昇格受入", () => {
 						resolveUpload = resolve; // アップロードを意図的に保留
 					}),
 			);
-		const both: FlexBubble = {
-			type: "bubble",
-			body: {
-				type: "box",
-				layout: "vertical",
-				contents: [
-					{ type: "image", url: "https://example.com/a.png" },
-					{ type: "text", text: "元のテキスト" },
-				],
-			},
-		};
+		const both = bothContents();
 		render(
 			<FlexWysiwygEditor
 				value={both}
@@ -266,6 +268,141 @@ describe("FlexWysiwygEditor 昇格受入", () => {
 		);
 		expect(uriInput).not.toBeNull();
 		expect(uriInput).toBeDisabled();
+	});
+
+	it("P3. 末尾の＋で挿入すると、挿入した部品が選択される（NB1 回帰）", async () => {
+		g().__containerWidth = 1200;
+		const onChange = vi.fn();
+		const one: FlexBubble = {
+			type: "bubble",
+			body: {
+				type: "box",
+				layout: "vertical",
+				contents: [{ type: "text", text: "A" }],
+			},
+		};
+		render(<FlexWysiwygEditor value={one} onChange={onChange} />);
+		const pluses = screen.getAllByRole("button", { name: "ここに部品を追加" });
+		fireEvent.click(pluses.at(-1) ?? {});
+		fireEvent.click(await screen.findByRole("button", { name: /テキスト/ }));
+		await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+		const next = onChange.mock.calls[0][0] as FlexBubble;
+		expect(next.body?.contents).toHaveLength(2);
+		// 選択されているのは挿入した側（indices [1]）。outline 2px solid の要素で確認
+		const selected = [...document.querySelectorAll("[data-flex-path]")].filter(
+			(e) => (e as HTMLElement).style.outline.startsWith("2px solid"),
+		);
+		expect(selected).toHaveLength(1);
+		expect(selected[0]?.getAttribute("data-flex-path")).toBe(
+			JSON.stringify({ section: "body", indices: [1] }),
+		);
+	});
+
+	it("P4. 空の box に挿入すると、挿入した部品が選択される（NB1 回帰）", async () => {
+		g().__containerWidth = 1200;
+		const onChange = vi.fn();
+		render(<FlexWysiwygEditor value={emptyBubble} onChange={onChange} />);
+		fireEvent.click(
+			screen.getAllByRole("button", { name: "ここに部品を追加" })[0] ?? {},
+		);
+		fireEvent.click(await screen.findByRole("button", { name: /テキスト/ }));
+		await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+		const selected = [...document.querySelectorAll("[data-flex-path]")].filter(
+			(e) => (e as HTMLElement).style.outline.startsWith("2px solid"),
+		);
+		expect(selected).toHaveLength(1);
+		expect(selected[0]?.getAttribute("data-flex-path")).toBe(
+			JSON.stringify({ section: "body", indices: [0] }),
+		);
+	});
+
+	it("P1. アップロード完了後の undo は 1 手前（テキスト編集後・画像は元）へ戻る（NM1 回帰）", async () => {
+		g().__containerWidth = 1200;
+		const onChange = vi.fn();
+		let resolveUpload: (url: string) => void = () => {};
+		const onUpload = vi
+			.fn<(file: File) => Promise<string>>()
+			.mockImplementation(
+				() =>
+					new Promise((resolve) => {
+						resolveUpload = resolve;
+					}),
+			);
+		render(
+			<FlexWysiwygEditor
+				value={bothContents()}
+				onChange={onChange}
+				onImageUpload={onUpload}
+			/>,
+		);
+		// 画像のアップロードを開始（保留）
+		const imageNode = document.querySelector('[data-flex-type="image"]');
+		fireEvent.click(imageNode);
+		const fileInput = document.querySelector('aside input[type="file"]');
+		fireEvent.change(fileInput ?? {}, {
+			target: { files: [new File(["x"], "a.png", { type: "image/png" })] },
+		});
+		// 保留中にテキストを編集
+		const textNode = document.querySelector('[data-flex-type="text"]');
+		fireEvent.click(textNode);
+		fireEvent.change(document.querySelector("aside textarea") ?? {}, {
+			target: { value: "編集後のテキスト" },
+		});
+		await waitFor(() =>
+			expect(
+				(onChange.mock.calls.at(-1)?.[0] as FlexBubble).body?.contents?.[1],
+			).toMatchObject({ text: "編集後のテキスト" }),
+		);
+		// アップロード完了 → undo は「テキスト編集後・画像は元」へ戻る
+		resolveUpload("https://cdn.example.com/up.png");
+		await waitFor(() =>
+			expect(
+				(onChange.mock.calls.at(-1)?.[0] as FlexBubble).body?.contents?.[0],
+			).toMatchObject({ url: "https://cdn.example.com/up.png" }),
+		);
+		fireEvent.click(screen.getByRole("button", { name: "元に戻す" }));
+		const undone = onChange.mock.calls.at(-1)?.[0] as FlexBubble;
+		expect(undone.body?.contents?.[0]).toMatchObject({
+			url: "https://example.com/a.png",
+		});
+		expect(undone.body?.contents?.[1]).toMatchObject({
+			text: "編集後のテキスト",
+		});
+	});
+
+	it("P2. アップロード中に画像を削除すると、完了時に別の部品へ url が書かれない（NM2 回帰）", async () => {
+		g().__containerWidth = 1200;
+		const onChange = vi.fn();
+		let resolveUpload: (url: string) => void = () => {};
+		const onUpload = vi
+			.fn<(file: File) => Promise<string>>()
+			.mockImplementation(
+				() =>
+					new Promise((resolve) => {
+						resolveUpload = resolve;
+					}),
+			);
+		render(
+			<FlexWysiwygEditor
+				value={bothContents()}
+				onChange={onChange}
+				onImageUpload={onUpload}
+			/>,
+		);
+		const imageNode = document.querySelector('[data-flex-type="image"]');
+		fireEvent.click(imageNode);
+		const fileInput = document.querySelector('aside input[type="file"]');
+		fireEvent.change(fileInput ?? {}, {
+			target: { files: [new File(["x"], "a.png", { type: "image/png" })] },
+		});
+		// 保留中に画像を削除
+		fireEvent.keyDown(imageNode, { key: "Delete" });
+		await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+		// 完了しても text へ url が書き込まれない
+		resolveUpload("https://cdn.example.com/up.png");
+		await new Promise((r) => setTimeout(r, 50));
+		const last = onChange.mock.calls.at(-1)?.[0] as FlexBubble;
+		expect((last.body?.contents?.[0] as { url?: string }).url).toBeUndefined();
 	});
 
 	it("5-a. undo で onChange が呼ばれ、テキストが戻る", async () => {

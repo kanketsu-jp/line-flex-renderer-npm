@@ -54,7 +54,7 @@
     "**/*.css"
   ],
   "scripts": {
-    "build": "tsup && tailwindcss -i src/wysiwyg/ui/styles.css -o dist/wysiwyg.css --minify && node -e \"const fs=require('fs');const f='dist/wysiwyg.css';const s=fs.readFileSync(f,'utf8');const n=(s.match(/:root,:host/g)||[]).length;if(n===0){console.error('scope fix: no :root,:host found (output format changed?)');process.exit(1)}fs.writeFileSync(f,s.replaceAll(':root,:host','.lfw-root,:host'));console.log('scope fix: replaced '+n+' occurrence(s)')\"",
+    "build": "tsup && tailwindcss -i src/wysiwyg/ui/styles.css -o dist/wysiwyg.css --minify && node -e \"const fs=require('fs');const f='dist/wysiwyg.css';const s=fs.readFileSync(f,'utf8');const n=(s.match(/:root,:host/g)||[]).length;if(n===0){console.error('scope fix: no :root,:host found (output format changed?)');process.exit(1)}const out=s.replaceAll(':root,:host','.lfw-root,:host');if(out.includes(':root')){console.error('scope fix: :root still remains after replace');process.exit(1)}fs.writeFileSync(f,out);console.log('scope fix: replaced '+n+' occurrence(s)')\"",
     "dev": "tsup --watch",
     "lint": "biome check src/",
     "lint:fix": "biome check --write src/",
@@ -64,12 +64,12 @@
     "build-storybook": "storybook build",
     "prepublishOnly": "pnpm run build",
     "typecheck": "tsc --noEmit",
-    "build:wysiwyg-css": "tailwindcss -i src/wysiwyg/ui/styles.css -o dist/wysiwyg.css --minify && node -e \"const fs=require('fs');const f='dist/wysiwyg.css';const s=fs.readFileSync(f,'utf8');const n=(s.match(/:root,:host/g)||[]).length;if(n===0){console.error('scope fix: no :root,:host found (output format changed?)');process.exit(1)}fs.writeFileSync(f,s.replaceAll(':root,:host','.lfw-root,:host'));console.log('scope fix: replaced '+n+' occurrence(s)')\""
+    "build:wysiwyg-css": "tailwindcss -i src/wysiwyg/ui/styles.css -o dist/wysiwyg.css --minify && node -e \"const fs=require('fs');const f='dist/wysiwyg.css';const s=fs.readFileSync(f,'utf8');const n=(s.match(/:root,:host/g)||[]).length;if(n===0){console.error('scope fix: no :root,:host found (output format changed?)');process.exit(1)}const out=s.replaceAll(':root,:host','.lfw-root,:host');if(out.includes(':root')){console.error('scope fix: :root still remains after replace');process.exit(1)}fs.writeFileSync(f,out);console.log('scope fix: replaced '+n+' occurrence(s)')\""
   },
   "peerDependencies": {
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0",
-    "@radix-ui/react-dialog": ">=1.0.0"
+    "@radix-ui/react-dialog": ">=1.0.4"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

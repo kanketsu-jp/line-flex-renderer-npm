@@ -106,7 +106,10 @@ import 'line-flex-message-renderer/wysiwyg.css'; // スコープ済みCSS（.lfw
   npm i line-flex-message-renderer @radix-ui/react-dialog
   ```
 - Next.js の App Router では Client Component の中で使ってください（`"use client"` 境界）
-- CSS は oklch / @layer を使うため Safari 16.4+ / Chrome 111+ 相当が必要です
+- CSS は oklch / @layer を使うため Safari 16.4+ / Chrome 111+ / Firefox 128+ 相当が必要です
+- ホスト側にレイヤーの外に書かれたグローバル CSS（例: `button { padding: … }`）があると、
+  エディタ内のスタイルよりも優先されます（cascade layer の仕様上）。
+  ホストの CSS も `@layer` 内に書くことを推奨します
 - 詳細は [docs/HANDOFF-wysiwyg.md](./docs/HANDOFF-wysiwyg.md)
 
 ### FlexEditor
