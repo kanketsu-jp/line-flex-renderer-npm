@@ -1,20 +1,18 @@
 // biome-ignore-all lint/suspicious/noArrayIndexKey: Flex contents は一意 id を持たず、並び順が実質的な識別子になる
 
 import { Plus } from "lucide-react";
-// 全案（A〜E / M1〜M6）がこのツリーを経由するため、ここで shadcn テーマを読む
-import "../ui/styles.css";
 import type React from "react";
 import { createContext, useContext, useState } from "react";
-import { FlexComponentRenderer } from "../../../components/FlexComponentRenderer";
-import { BUBBLE_WIDTH, SPACING } from "../../../constants";
-import { containsLockedUri } from "../../../editor/lockedUris";
-import { nodeLabel } from "../../../editor/path";
+import { FlexComponentRenderer } from "../../components/FlexComponentRenderer";
+import { BUBBLE_WIDTH, SPACING } from "../../constants";
+import { containsLockedUri } from "../../editor/lockedUris";
+import { nodeLabel } from "../../editor/path";
 import type {
 	FlexNodePath,
 	FlexSection,
 	InsertableKind,
-} from "../../../editor/types";
-import type { FlexBox, FlexBubble, FlexComponentType } from "../../../types";
+} from "../../editor/types";
+import type { FlexBox, FlexBubble, FlexComponentType } from "../../types";
 import { cn } from "../ui/utils";
 import { kindIcon, w } from "./theme";
 import type { FlexDoc } from "./useFlexDoc";
@@ -35,6 +33,9 @@ const DropTargetContext = createContext<FlexNodePath | null>(null);
 const SlotClickContext = createContext<
 	((parentPath: FlexNodePath, index: number) => void) | null
 >(null);
+
+/** 差し込み保護 URI（保護バッジ表示用） */
+const LockedUrisContext = createContext<string[] | undefined>(undefined);
 
 /** タップ・トゥ・プレイス（挿入モード）。box 自身の上に＋ガイドを重ねるのでスクロールに追随する */
 interface TapToPlaceState {
@@ -85,7 +86,8 @@ function NodeWrap({ path, node, doc, interactive, children }: NodeWrapProps) {
 		doc.selected.section === path.section &&
 		doc.selected.indices.length === path.indices.length &&
 		doc.selected.indices.every((v, i) => v === path.indices[i]);
-	const isLocked = containsLockedUri(node, undefined);
+	const lockedUris = useContext(LockedUrisContext);
+	const isLocked = containsLockedUri(node, lockedUris);
 	const isSection = path.indices.length === 0;
 
 	if (!interactive) {
@@ -288,7 +290,6 @@ function InsertSlot({
 	const isVertical = direction === "vertical";
 	const onSlotClick = useContext(SlotClickContext);
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: 罫線+pill の複合ヒット領域（背景飾りを含む）
 		<button
 			type="button"
 			aria-label="ここに部品を追加"
@@ -559,6 +560,8 @@ export interface InteractiveTreeProps {
 	activeDropPath?: FlexNodePath | null;
 	/** タップ・トゥ・プレイス（挿入モード）。box の上に＋ガイドを重ねる */
 	tapToPlace?: TapToPlaceState | null;
+	/** 差し込み保護 URI（該当 action 持つ部品に保護バッジを表示） */
+	lockedUris?: string[];
 	/** Divider の＋押下時に開く部品選択シート用コールバック（parentPath と挿入 index） */
 	onSlotClick?: (parentPath: FlexNodePath, index: number) => void;
 }
@@ -570,6 +573,7 @@ export function InteractiveTree({
 	onAddSection,
 	activeDropPath = null,
 	tapToPlace = null,
+	lockedUris,
 	onSlotClick,
 }: InteractiveTreeProps) {
 	const bubble = doc.bubble;
@@ -580,69 +584,71 @@ export function InteractiveTree({
 	return (
 		<DropTargetContext.Provider value={activeDropPath}>
 			<TapToPlaceContext.Provider value={tapToPlace}>
-				<SlotClickContext.Provider value={onSlotClick ?? null}>
-					{/* biome-ignore lint/a11y/noStaticElementInteractions: キャンバス背景クリックで選択解除（標準的なキャンバス操作） */}
-					<div
-						onClick={() => doc.select(null)}
-						onKeyDown={(e) => {
-							if (e.key === "Escape") doc.select(null);
-						}}
-						role="presentation"
-						style={{
-							width,
-							// bubble の LINE 実機幅で最大（見た目はそのままに狭いコンテナへ収める）
-							maxWidth: BUBBLE_WIDTH[doc.bubble.size ?? "mega"] ?? undefined,
-							boxSizing: "border-box",
-							borderRadius: 16,
-							overflow: "hidden",
-							backgroundColor: "#ffffff",
-							boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
-							fontFamily:
-								'-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial, sans-serif',
-						}}
-					>
-						{SECTION_ORDER.map((section) => {
-							const node = bubble[section];
-							if (!node) {
-								return interactive ? (
-									<SectionView
-										key={section}
-										section={section}
-										bubble={bubble}
-										doc={doc}
-										interactive={interactive}
-										onAddSection={onAddSection}
-									/>
-								) : null;
-							}
-							return (
-								<div
-									key={section}
-									style={{
-										backgroundColor:
-											section === "header"
-												? headerBg
-												: section === "body"
-													? bodyBg
-													: section === "footer"
-														? footerBg
-														: undefined,
-									}}
-								>
-									<div style={{ padding: SECTION_PADDING[section] }}>
+				<LockedUrisContext.Provider value={lockedUris}>
+					<SlotClickContext.Provider value={onSlotClick ?? null}>
+						{/* biome-ignore lint/a11y/noStaticElementInteractions: キャンバス背景クリックで選択解除（標準的なキャンバス操作） */}
+						<div
+							onClick={() => doc.select(null)}
+							onKeyDown={(e) => {
+								if (e.key === "Escape") doc.select(null);
+							}}
+							role="presentation"
+							style={{
+								width,
+								// bubble の LINE 実機幅で最大（見た目はそのままに狭いコンテナへ収める）
+								maxWidth: BUBBLE_WIDTH[doc.bubble.size ?? "mega"] ?? undefined,
+								boxSizing: "border-box",
+								borderRadius: 16,
+								overflow: "hidden",
+								backgroundColor: "#ffffff",
+								boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
+								fontFamily:
+									'-apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", Arial, sans-serif',
+							}}
+						>
+							{SECTION_ORDER.map((section) => {
+								const node = bubble[section];
+								if (!node) {
+									return interactive ? (
 										<SectionView
+											key={section}
 											section={section}
 											bubble={bubble}
 											doc={doc}
 											interactive={interactive}
 											onAddSection={onAddSection}
 										/>
+									) : null;
+								}
+								return (
+									<div
+										key={section}
+										style={{
+											backgroundColor:
+												section === "header"
+													? headerBg
+													: section === "body"
+														? bodyBg
+														: section === "footer"
+															? footerBg
+															: undefined,
+										}}
+									>
+										<div style={{ padding: SECTION_PADDING[section] }}>
+											<SectionView
+												section={section}
+												bubble={bubble}
+												doc={doc}
+												interactive={interactive}
+												onAddSection={onAddSection}
+											/>
+										</div>
 									</div>
-								</div>
-							);
-						})}
-					</div>
-				</SlotClickContext.Provider>
+								);
+							})}
+						</div>
+					</SlotClickContext.Provider>
+				</LockedUrisContext.Provider>
 			</TapToPlaceContext.Provider>
 		</DropTargetContext.Provider>
 	);

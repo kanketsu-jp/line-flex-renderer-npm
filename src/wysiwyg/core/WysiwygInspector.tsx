@@ -1,8 +1,8 @@
 import type React from "react";
-import { ICON_SIZE, IMAGE_SIZE, SPACING } from "../../../constants";
-import { ColorField, SelectField, TextField } from "../../../editor/fields";
-import { NodeInspector } from "../../../editor/inspectors";
-import type { FlexComponentType, FlexImage } from "../../../types";
+import { ICON_SIZE, IMAGE_SIZE, SPACING } from "../../constants";
+import { ColorField, SelectField, TextField } from "../../editor/fields";
+import { NodeInspector } from "../../editor/inspectors";
+import type { FlexComponentType, FlexImage } from "../../types";
 import { ImageUploadField } from "./ImageUploadField";
 import { w } from "./theme";
 

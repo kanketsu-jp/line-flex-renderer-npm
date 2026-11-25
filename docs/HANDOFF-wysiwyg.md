@@ -1,8 +1,8 @@
 # WYSIWYG エディタ移管ガイド（次のエージェント向け）
 
-最終更新: 2026-11-24（コミット `913af8b` 時点）
+最終更新: 2026-11-25 夜（**本番昇格完了 + REVIEW-2 の N1〜N5・M6・M7 修正済み**。version 1.7.0）
 対象 Issue: https://github.com/kanketsu-jp/line-flex-renderer-npm/issues/10
-ブランチ: `feat/wysiwyg-concepts`（main に対し +13 コミット、**未 push**）
+ブランチ: `feat/wysiwyg-concepts`（**未 push**）
 
 このドキュメントは「**リポジトリを見ただけで最新状態を把握し、そのまま作業を引き継げる**」
 ことを目的とする。最初にこれを読み、次に `AGENTS.md`（基本ルール）を確認すること。
@@ -11,7 +11,18 @@
 
 ## 1. 今どこまで完了しているか
 
-### ✅ 完了（feat/wysiwyg-concepts の全 13 コミット）
+### ✅ 本番昇格済み（2026-11-25、REVIEW §4 の修正案どおり）
+
+- 移動先: `src/wysiwyg/`（`core/` `editor/` `ui/` `layout/`）。`src/index.ts`（root）には足さず、**別入口 `src/wysiwyg/index.ts`** から export
+- `exports` に `./wysiwyg`（ESM/CJS+型）と `./wysiwyg.css` を追加。`"sideEffects": ["**/*.css"]`
+- build: `tsup && tailwindcss … --minify && :root→.lfw-root 置換`（tsup の clean が CSS を消さない順序）
+- CSS は `.lfw-root` スコープ（preflight 廃止・トークンも配下限定・theme 変数の :root 漏れも置換で解消）
+- 依存: `@radix-ui/react-dialog` は **peerDependenciesMeta.optional**。lucide/clsx/tailwind-merge/cva はバンドル。`dependencies` は空のまま
+- 受入テスト 13 件（幅切替 / preview 編集不能+対照 / Divider＋挿入 / lockedUris PC・SP / undo / onImageUpload(PC) / **M6 アップロード競合**）。**158 件全通過**
+- REVIEW-2（再レビュー）の対応: N1（リセットを @layer base へ・レイヤー順序 theme<base<utilities を import 順で実現）・N2（SheetContent/SheetOverlay に lfw-root）・N3（biome css.parser.tailwindDirectives、pnpm lint 緑）・N4（後処理の件数検査 exit 1）・N5（border-color 復活）・N6（feat!→feat に amend）・N7（version 1.7.0 + CHANGELOG）・M6（useFlexDoc を bubbleRef 化、doc.insertNodeAt 追加）・M7 SP（lockedUris 伝達）
+- レビュー原文: `.temp/2026-11-25/wysiwyg-promotion-review/REVIEW.md` と `REVIEW-2.md`
+
+### ✅ 機能完了（feature）
 
 | 完了物 | 場所 | 概要 |
 |---|---|---|

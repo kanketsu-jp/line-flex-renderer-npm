@@ -1,0 +1,63 @@
+/* ── base: 最小リセット（レイヤー内＝utilities より弱くなり正しい優先順位） ── */
+@layer base {
+	.lfw-root {
+		--background: oklch(1 0 0);
+		--foreground: oklch(0.23 0.01 260);
+		--card: oklch(1 0 0);
+		--card-foreground: oklch(0.23 0.01 260);
+		--popover: oklch(1 0 0);
+		--popover-foreground: oklch(0.23 0.01 260);
+		--primary: oklch(0.77 0.19 149);
+		--primary-foreground: oklch(1 0 0);
+		--secondary: oklch(0.968 0.007 247.9);
+		--secondary-foreground: oklch(0.23 0.01 260);
+		--muted: oklch(0.968 0.007 247.9);
+		--muted-foreground: oklch(0.551 0.015 264.4);
+		--accent: oklch(0.968 0.007 247.9);
+		--accent-foreground: oklch(0.23 0.01 260);
+		--destructive: oklch(0.577 0.245 27.3);
+		--destructive-foreground: oklch(1 0 0);
+		--border: oklch(0.929 0.013 255.5);
+		--input: oklch(0.929 0.013 255.5);
+		--ring: oklch(0.77 0.19 149);
+		--radius: 0.625rem;
+
+		box-sizing: border-box;
+		font-family:
+			-apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP",
+			"Yu Gothic", Meiryo, sans-serif;
+		color: var(--foreground);
+		background-color: var(--background);
+	}
+
+	.lfw-root *,
+	.lfw-root *::before,
+	.lfw-root *::after {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+		border: 0 solid;
+		/* N5: border の既定色。Tailwind v4 の border は色未指定で currentColor になるため */
+		border-color: var(--border);
+	}
+
+	.lfw-root img,
+	.lfw-root svg,
+	.lfw-root video {
+		display: block;
+		max-width: 100%;
+	}
+
+	.lfw-root button,
+	.lfw-root input,
+	.lfw-root textarea,
+	.lfw-root select {
+		font: inherit;
+		color: inherit;
+		background: transparent;
+	}
+
+	.lfw-root [data-slot="button"] {
+		cursor: pointer;
+	}
+}

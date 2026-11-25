@@ -1,6 +1,6 @@
 import type React from "react";
 import { useRef, useState } from "react";
-import { TextField } from "../../../editor/fields";
+import { TextField } from "../../editor/fields";
 import { font, w } from "./theme";
 
 /**

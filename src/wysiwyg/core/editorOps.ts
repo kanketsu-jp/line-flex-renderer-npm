@@ -1,6 +1,6 @@
-import { createNode, getNode, patchNode } from "../../../editor/path";
-import type { FlexNodePath, InsertableKind } from "../../../editor/types";
-import type { FlexBubble } from "../../../types";
+import { createNode, getNode, patchNode } from "../../editor/path";
+import type { FlexNodePath, InsertableKind } from "../../editor/types";
+import type { FlexBubble } from "../../types";
 
 /**
  * parentPath の contents[index] の位置に kind を挿入（Divider の＋位置）。

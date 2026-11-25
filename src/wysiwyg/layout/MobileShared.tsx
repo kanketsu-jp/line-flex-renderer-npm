@@ -1,8 +1,8 @@
 import type React from "react";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { ensureSection } from "../../../editor/path";
-import type { FlexNodePath } from "../../../editor/types";
-import type { FlexBubble } from "../../../types";
+import { ensureSection } from "../../editor/path";
+import type { FlexNodePath } from "../../editor/types";
+import type { FlexBubble } from "../../types";
 import { InteractiveTree } from "../core/InteractiveTree";
 import type { useFlexDoc } from "../core/useFlexDoc";
 

@@ -1,18 +1,15 @@
 import { useCallback, useMemo, useRef, useState } from "react";
-import { countLockedUris } from "../../../editor/lockedUris";
+import { countLockedUris } from "../../editor/lockedUris";
 import {
 	getNode,
 	insertNode,
 	moveNode,
 	patchNode,
 	removeNode,
-} from "../../../editor/path";
-import type { FlexNodePath, InsertableKind } from "../../../editor/types";
-import type {
-	FlexBubble,
-	FlexComponentType,
-	FlexContainer,
-} from "../../../types";
+} from "../../editor/path";
+import type { FlexNodePath, InsertableKind } from "../../editor/types";
+import type { FlexBubble, FlexComponentType, FlexContainer } from "../../types";
+import { insertNodeAt as insertNodeAtPosition } from "./editorOps";
 
 /**
  * WYSIWYG プロトタイプ共通のドキュメント状態フック。
@@ -31,6 +28,12 @@ export interface FlexDoc {
 	select: (path: FlexNodePath | null) => void;
 	patch: (path: FlexNodePath, patch: Record<string, unknown>) => void;
 	insert: (parentPath: FlexNodePath, kind: InsertableKind) => void;
+	/** 指定 index の位置に挿入（Divider の＋位置）。常に最新 bubble へ適用 */
+	insertNodeAt: (
+		parentPath: FlexNodePath,
+		kind: InsertableKind,
+		index: number,
+	) => void;
 	remove: (path: FlexNodePath) => void;
 	move: (path: FlexNodePath, delta: number) => void;
 	duplicate: (path: FlexNodePath) => void;
@@ -50,6 +53,9 @@ export function useFlexDoc(
 	const onChangeRef = useRef(onChange);
 	onChangeRef.current = onChange;
 	const [bubble, setBubble] = useState<FlexBubble>(initial);
+	// 常に最新の bubble を参照する ref（非同期操作中の古いクロージャを防ぐ = M6）
+	const bubbleRef = useRef(bubble);
+	bubbleRef.current = bubble;
 	const [selected, setSelected] = useState<FlexNodePath | null>(null);
 	const [lastError, setLastError] = useState<string | null>(null);
 	const [historyDepth, setHistoryDepth] = useState({ past: 0, future: 0 });
@@ -88,24 +94,24 @@ export function useFlexDoc(
 	const undo = useCallback(() => {
 		const prev = pastRef.current.pop();
 		if (!prev) return;
-		futureRef.current = [...futureRef.current, bubble];
+		futureRef.current = [...futureRef.current, bubbleRef.current];
 		setBubble(prev);
 		setSelected(null);
 		setLastError(null);
 		syncHistoryDepth();
 		onChangeRef.current?.(prev);
-	}, [bubble, syncHistoryDepth]);
+	}, [syncHistoryDepth]);
 
 	const redo = useCallback(() => {
 		const next = futureRef.current.pop();
 		if (!next) return;
-		pastRef.current = [...pastRef.current, bubble];
+		pastRef.current = [...pastRef.current, bubbleRef.current];
 		setBubble(next);
 		setSelected(null);
 		setLastError(null);
 		syncHistoryDepth();
 		onChangeRef.current?.(next);
-	}, [bubble, syncHistoryDepth]);
+	}, [syncHistoryDepth]);
 
 	const duplicate = useCallback(
 		(path: FlexNodePath) => {
@@ -114,25 +120,30 @@ export function useFlexDoc(
 				section: path.section,
 				indices: path.indices.slice(0, -1),
 			};
-			const parentNode = getNode(bubble, parentPath);
-			const node = getNode(bubble, path);
+			const parentNode = getNode(bubbleRef.current, parentPath);
+			const node = getNode(bubbleRef.current, path);
 			if (!parentNode || parentNode.type !== "box" || !node) return;
 			const index = path.indices[path.indices.length - 1];
 			const cloned = structuredClone(node);
 			const newContents = [...parentNode.contents];
 			newContents.splice(index + 1, 0, cloned);
-			commit(patchNode(bubble, parentPath, { contents: newContents }), {
-				keepSelection: true,
-			});
+			commit(
+				patchNode(bubbleRef.current, parentPath, { contents: newContents }),
+				{
+					keepSelection: true,
+				},
+			);
 		},
-		[bubble, commit],
+		[commit],
 	);
 
 	const insert = useCallback(
 		(parentPath: FlexNodePath, kind: InsertableKind) => {
-			commit(insertNode(bubble, parentPath, kind), { keepSelection: true });
+			commit(insertNode(bubbleRef.current, parentPath, kind), {
+				keepSelection: true,
+			});
 		},
-		[bubble, commit],
+		[commit],
 	);
 
 	const selectedNode = useMemo(
@@ -149,11 +160,15 @@ export function useFlexDoc(
 		lastError,
 		select: setSelected,
 		patch: (path, p) =>
-			commit(patchNode(bubble, path, p), { keepSelection: true }),
+			commit(patchNode(bubbleRef.current, path, p), { keepSelection: true }),
 		insert,
-		remove: (path) => commit(removeNode(bubble, path)),
+		insertNodeAt: (parentPath, kind, index) =>
+			commit(insertNodeAtPosition(bubbleRef.current, parentPath, kind, index), {
+				keepSelection: true,
+			}),
+		remove: (path) => commit(removeNode(bubbleRef.current, path)),
 		move: (path, delta) =>
-			commit(moveNode(bubble, path, delta), { keepSelection: true }),
+			commit(moveNode(bubbleRef.current, path, delta), { keepSelection: true }),
 		duplicate,
 		replace: (b) => commit(b),
 		undo,

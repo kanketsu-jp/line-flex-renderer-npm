@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { WizardDemo } from "./wysiwyg/editor/WizardDemo";
+import { WizardDemo } from "./wysiwyg/WizardDemo";
 
 /**
  * ウィザード デモ（呼び出し側込み）— テンプレ選択 → エディタ → 仕上げ（プレビュー＋JSON）。

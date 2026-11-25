@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { FlexWysiwygEditor } from "./wysiwyg/editor/FlexWysiwygEditor";
+import { FlexWysiwygEditor } from "../wysiwyg/editor/FlexWysiwygEditor";
 
 /**
  * 採用案 — モバイル(M2 洗練版) と PC(案A 洗練版) を 1 コンポーネントに統合した WYSIWYG エディタ。

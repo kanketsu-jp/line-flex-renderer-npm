@@ -1,15 +1,15 @@
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
-import { defaultTemplates } from "../../../editor/templates";
-import type { FlexBubble } from "../../../types";
+import { defaultTemplates } from "../../editor/templates";
+import type { FlexBubble } from "../../types";
+import { FlexWysiwygEditor } from "../../wysiwyg/editor/FlexWysiwygEditor";
 import {
 	ContainerQueryShell,
 	useContainerLayout,
-} from "../mobile/MobileShared";
-import { Button } from "../ui/button";
-import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
-import { cn } from "../ui/utils";
-import { FlexWysiwygEditor } from "./FlexWysiwygEditor";
+} from "../../wysiwyg/layout/MobileShared";
+import { Button } from "../../wysiwyg/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "../../wysiwyg/ui/toggle-group";
+import { cn } from "../../wysiwyg/ui/utils";
 
 /**
  * 呼び出し側デモ — 2 ステップ構成（テンプレ選択 → 編集）。

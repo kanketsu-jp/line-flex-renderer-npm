@@ -1,6 +1,6 @@
 {
   "name": "line-flex-message-renderer",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "React component to render LINE Flex Message JSON as a visual preview — pixel-accurate to the LINE app.",
   "keywords": [
     "line",
@@ -32,16 +32,29 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    }
+    },
+    "./wysiwyg": {
+      "import": {
+        "types": "./dist/wysiwyg.d.ts",
+        "default": "./dist/wysiwyg.js"
+      },
+      "require": {
+        "types": "./dist/wysiwyg.d.cts",
+        "default": "./dist/wysiwyg.cjs"
+      }
+    },
+    "./wysiwyg.css": "./dist/wysiwyg.css"
   },
   "files": [
     "dist",
     "README.md",
     "LICENSE"
   ],
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && tailwindcss -i src/wysiwyg/ui/styles.css -o dist/wysiwyg.css --minify && node -e \"const fs=require('fs');const f='dist/wysiwyg.css';const s=fs.readFileSync(f,'utf8');const n=(s.match(/:root,:host/g)||[]).length;if(n===0){console.error('scope fix: no :root,:host found (output format changed?)');process.exit(1)}fs.writeFileSync(f,s.replaceAll(':root,:host','.lfw-root,:host'));console.log('scope fix: replaced '+n+' occurrence(s)')\"",
     "dev": "tsup --watch",
     "lint": "biome check src/",
     "lint:fix": "biome check --write src/",
@@ -50,11 +63,13 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "prepublishOnly": "pnpm run build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:wysiwyg-css": "tailwindcss -i src/wysiwyg/ui/styles.css -o dist/wysiwyg.css --minify && node -e \"const fs=require('fs');const f='dist/wysiwyg.css';const s=fs.readFileSync(f,'utf8');const n=(s.match(/:root,:host/g)||[]).length;if(n===0){console.error('scope fix: no :root,:host found (output format changed?)');process.exit(1)}fs.writeFileSync(f,s.replaceAll(':root,:host','.lfw-root,:host'));console.log('scope fix: replaced '+n+' occurrence(s)')\""
   },
   "peerDependencies": {
     "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react-dom": ">=18.0.0",
+    "@radix-ui/react-dialog": ">=1.0.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -72,6 +87,7 @@
     "@storybook/addon-a11y": "^10.3.3",
     "@storybook/addon-docs": "^10.3.3",
     "@storybook/react-vite": "^10.3.3",
+    "@tailwindcss/cli": "4.3.5",
     "@tailwindcss/vite": "^4.3.5",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -91,5 +107,10 @@
     "typescript": "^6.0.2",
     "vitest": "^4.1.1"
   },
-  "packageManager": "pnpm@10.33.0"
+  "packageManager": "pnpm@10.33.0",
+  "peerDependenciesMeta": {
+    "@radix-ui/react-dialog": {
+      "optional": true
+    }
+  }
 }

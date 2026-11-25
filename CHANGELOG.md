@@ -1,100 +1,43 @@
 # Changelog
 
-## [1.6.0] - 2026-09-25
+## 1.7.0
 
-### Added
+### 追加
 
-- **FlexEditor に `lockedUris` を追加** — 差し込み位置の URI をリンク欄の編集・動作の切替・部品の削除・JSON やテンプレートによる置き換えから保護する
-- 部分木の保護対象 URI を調べる `countLockedUris` / `containsLockedUri` を公開
+- **WYSIWYG エディタ `FlexWysiwygEditor`**（別入口 `line-flex-message-renderer/wysiwyg`）
+  - LINE Flex Message をプレビュー上で直接編集できる新エディタ
+  - モバイル（ボトムシート）と PC（右パネル）をコンテナ幅で自動切替（コンテナクエリ方式）
+  - Divider の「＋」から部品選択シートで挿入、部品選択で「編集」「削除」バー
+  - 画像はアップロード式（`onImageUpload` でホスト側のアップローダに差し替え可、未指定は data URL）
+  - 差し込み保護 `lockedUris`（該当 action の削除・URI 変更を拒否）
+  - undo / redo（100 ステップ）
+  - `preview` props で表示専用モード
+  - 戻る/次へなどのナビは `children` として呼び出し側が自由に配置
+- 同梱 CSS `line-flex-message-renderer/wysiwyg.css`（`.lfw-root` 配下にスコープ。
+  ホストページのスタイルに影響しない。Tailwind v4 ベース、oklch / @layer を使用するため
+  Safari 16.4+ / Chrome 111+ 相当）
+- `@radix-ui/react-dialog` が任意の peer 依存として追加（renderer だけ使う場合は不要）。
+  WYSIWYG エディタを使う場合は `npm i @radix-ui/react-dialog` が必要
 
-## [1.5.1] - 2026-09-12
+### 互換性
 
-### Fixed
+- 既存 API に破壊的変更はありません。renderer（`FlexMessagePreview` 等）は
+  引き続き zero-dependency・CSS-in-JS です
+- WYSIWYG エディタの `value` は初期値として扱われます（制御コンポーネントではありません。
+  テンプレート差し替えは `key` での再マウントで行ってください）
 
-- **色を指定していない Flex の `text` が、ホストページの文字色を継承していた問題を修正** — 吹き出しの背景は `#ffffff` 固定なので、ダークモードのページに置くと**白地に白**で読めなくなっていた。`DEFAULT_TEXT_COLOR`（`#111111`）を既定として当てる
-- `LineTextBubble` が持っていた同じ値を `DEFAULT_TEXT_COLOR` に寄せ、既定色の定義を 1 箇所にした
-- 🚨 `span` には既定を置かない（親の `text` に指定した色を上書きしてしまうため）。色未指定の `span` は inline color を持たず、親から継承する
+## 1.6.0
 
-> LINE 公式ドキュメントに「`text` の `color` の既定値」の記載は見つかりませんでした（`docs/messaging-api/flex-message-elements` の EN / JA、`reference/messaging-api`、サイト内検索を確認）。値はこの package 自身の慣習（`LineTextBubble` が使っていた `#111111`）に合わせています。
+- `lockedUris` で差し込み位置の URI を編集・削除から保護
 
-## [1.4.0] - 2026-09-06
+## 1.5.1
 
-### Added
+- 色を指定していない Flex の text に既定色を当てる
 
-- **Flex Message JSON の構造検査を追加** — `validateFlexMessage`、`parseFlexMessage`、`formatFlexJson` とエラー型を公開
-- 未知のキーを保持したまま JSON パス付きで検証結果を返す機能を追加
+## 1.5.0
 
-## [1.3.3] - 2026-09-05
+- エディタのレイアウト改善と JSON パネル
 
-### Fixed
+## 1.4.0
 
-- **FlexEditor が自分の `onChange` で出した値の遅れて届くエコーを無視するように修正** — 親が値をそのまま返す場合も、入力内容と選択状態を維持する
-- 親が昔エディタが出した値へ巻き戻す場合は、`key` を変えて FlexEditor を作り直す
-- エコーする親での連続入力検査用 Storybook story 2 本に play 関数を追加（Storybook を開いて確認する）
-
-## [1.3.2] - 2026-09-05
-
-### Fixed
-
-- **StrictMode（Next.js の dev 既定）でマウントしただけで `onChange` が 1 回呼ばれていた問題を修正**
-- **親から渡される値との同期を「前回やりとりした中身」との比較に統一し、`isFirst` フラグを廃止**
-- **選択状態のリセットを `setContainer` の updater の外へ移動し、updater を純粋にした**
-
-## [1.3.1] - 2026-09-05
-
-### Fixed
-
-- **FlexEditor が無限ループする問題を修正** — 親が毎レンダーで新しいオブジェクトを `value` に渡すと "Maximum update depth exceeded" で落ちていた。内部 state と中身が同じときは更新しないようにした
-
-## [1.3.0] - 2026-09-04
-
-### Added
-
-- **FlexEditor（みたまま編集 UI）を追加** — LINE Flex Message を非技術者が「みたまま」編集できるコンポーネントを追加
-  - **レスポンシブな 2 カラム UI**: PC は左プレビュー・右編集パネルの 2 カラム、モバイル幅（既定 768px 未満）では「プレビュー / 編集」タブに自動で切り替わります
-  - **直感的なフォーム編集**: テキスト・色・ボタンのラベルと URL・画像 URL・並び順をフォームで編集でき、JSON を直接触らせない設計
-  - **テンプレート 5 種を内蔵**: お知らせ・クーポン・商品紹介・イベント案内・店舗紹介の 5 種類から編集を始められます
-  - **JSON の読み込み・書き出し**: 既存の Flex Message JSON を貼り付けて読み込み・書き出しできます
-  - **LINE 公式仕様準拠の検証 (`validateFlex`)**: LINE Messaging API 仕様に沿ったバリデーションで不正な設定を事前に検知します
-  - **ゼロ依存を維持**: 新規依存パッケージを追加せず、CSS-in-JS のみで実装されています
-
-## [1.2.2] - 2026-04-01
-
-### Fixed
-
-- **body/footer の固定 padding を FlexBox の paddingAll で上書き可能に** — header / body / footer の wrapper `<div>` に直接指定していた固定 padding を廃止し、FlexBox 側の `paddingAll` / `paddingTop` 等が指定されていればそちらを優先するように変更。padding 系プロパティが一切未指定の場合のみ従来のデフォルト値を適用する
-
-## [1.2.1] - 2026-03-30
-
-### Fixed
-
-- **FlexText `align: "end"` が horizontal box 内で右揃えにならない問題を修正** — `<p>` に `width: 100%` を追加し、wrapper div の全幅を確保するようにした
-
-## [1.2.0] - 2026-03-29
-
-### Changed
-
-- FlexSeparator のスタイルを修正（`border: none` + `margin: 0` で上下の余白を除去）
-
-## [1.1.0] - 2026-03-28
-
-### Changed
-
-- **FlexBox レイアウトエンジンを全面リライト** — CSS `gap` による一律スペーシングから、LINE 仕様準拠の per-child wrapper 方式に変更
-  - 親の `spacing` をデフォルトギャップとして使用し、子の `margin` で個別上書き可能に
-  - 先頭の子要素にはギャップを付与しない（LINE 仕様通り）
-  - horizontal/baseline レイアウトで `flex` 未指定の子要素はデフォルト `flex: 1`（LINE 仕様通り）
-- **Filler / Spacer を FlexBox 内で直接レンダリング**するように変更
-- FlexButton の `border-radius` を `9999px` → `8px` に変更（LINE 実機に合わせた）
-- 各コンポーネント（FlexText, FlexImage, FlexButton）から自前の `margin` / `flex` 管理を削除し、親 FlexBox の wrapper に一元化
-
-## [1.0.0] - 2026-03-20
-
-### Added
-
-- Initial stable release
-- FlexBox, FlexText, FlexImage, FlexButton, FlexSeparator, FlexSpacer, FlexFiller, FlexIcon, FlexSpan
-- FlexMessagePreview (bubble / carousel)
-- LineChatFrame, LineTextBubble
-- Bubble size support (nano / micro / kilo / mega / giga)
-- Carousel with horizontal scroll & snap
+- 初期リリース

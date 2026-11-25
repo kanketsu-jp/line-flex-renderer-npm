@@ -76,26 +76,38 @@ Renders a plain text message bubble.
 <LineTextBubble text="Hello!" />
 ```
 
-### FlexWysiwygEditor（WYSIWYG エディタ・開発中）
+### FlexWysiwygEditor（WYSIWYG エディタ）
 
-レイヤー上で直接操作する次世代エディタ。プレビューと編集が一体化し、
-モバイル（ボトムシート）と PC（右パネル）の両レイアウトをコンテナ幅で自動切替します。
+プレビュー上で直接操作するエディタ。モバイル（ボトムシート）と PC（右パネル）を
+コンテナ幅で自動切替します。**専用の別エントリ**で提供され、renderer の zero-dep は変わりません。
 
 ```tsx
-import { FlexWysiwygEditor } from 'line-flex-message-renderer';
-// ※ 2026-11 時点ではブランチ feat/wysiwyg-concepts に存在（本番昇格準備中）
+import { FlexWysiwygEditor } from 'line-flex-message-renderer/wysiwyg';
+import 'line-flex-message-renderer/wysiwyg.css'; // スコープ済みCSS（.lfw-root 配下のみ）
 
 <FlexWysiwygEditor
-  value={bubble}
+  value={bubble}                 // FlexBubble（bubble のみ）
   onChange={(next) => setBubble(next)}
-  preview={mode === 'preview'}
+  preview={mode === 'preview'}   // プレビューモード（編集不可の表示専用）
+  onImageUpload={upload}         // 画像をホスト側にアップロード（未指定は data URL）
+  lockedUris={['https://…']}     // 差し込み保護 URI
 >
-  <MyNavButtons />  {/* 戻る/保存などは呼び出し側が自由に配置 */}
+  <MyNavButtons />               {/* 戻る/保存などは呼び出し側が自由に配置 */}
 </FlexWysiwygEditor>
 ```
 
-詳細な引き継ぎ情報（残作業・設計原則・ハマりポイント）は
-[docs/HANDOFF-wysiwyg.md](./docs/HANDOFF-wysiwyg.md) を参照。
+- **`value` は初期値として扱われます**（制御コンポーネントではありません。
+  テンプレート差し替えは `key` を変えて再マウントしてください）
+- `onImageUpload?: (file: File) => Promise<string>` — 未指定のときの data URL は
+  LINE API で送信できないため、本番では必ず指定してください
+- **`/wysiwyg` を使う場合は `@radix-ui/react-dialog` のインストールが必須**です
+  （renderer だけを使う場合は不要）:
+  ```bash
+  npm i line-flex-message-renderer @radix-ui/react-dialog
+  ```
+- Next.js の App Router では Client Component の中で使ってください（`"use client"` 境界）
+- CSS は oklch / @layer を使うため Safari 16.4+ / Chrome 111+ 相当が必要です
+- 詳細は [docs/HANDOFF-wysiwyg.md](./docs/HANDOFF-wysiwyg.md)
 
 ### FlexEditor
 
