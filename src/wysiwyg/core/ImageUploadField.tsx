@@ -30,10 +30,6 @@ export function ImageUploadField({
 	onUpload,
 }: ImageUploadFieldProps): React.ReactElement {
 	const inputRef = useRef<HTMLInputElement>(null);
-	// アップロード完了時には「開始時でなく最新」の onUrlChange を呼ぶ（NM2:
-	// 保留中に選択が変わった/消えた場合、最新のハンドラが正しくガードできる）
-	const onUrlChangeRef = useRef(onUrlChange);
-	onUrlChangeRef.current = onUrlChange;
 	const [dragging, setDragging] = useState(false);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -66,7 +62,7 @@ export function ImageUploadField({
 				? await onUpload(file)
 				: await readFileAsDataUrl(file);
 			setFileName(file.name);
-			onUrlChangeRef.current(url);
+			onUrlChange(url);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "アップロードに失敗しました");
 		} finally {

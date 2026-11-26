@@ -9,7 +9,10 @@ import {
 } from "../../editor/path";
 import type { FlexNodePath, InsertableKind } from "../../editor/types";
 import type { FlexBubble, FlexComponentType, FlexContainer } from "../../types";
-import { insertNodeAt as insertNodeAtPosition } from "./editorOps";
+import {
+	findNodePath,
+	insertNodeAt as insertNodeAtPosition,
+} from "./editorOps";
 
 /**
  * WYSIWYG プロトタイプ共通のドキュメント状態フック。
@@ -27,6 +30,11 @@ export interface FlexDoc {
 	lastError: string | null;
 	select: (path: FlexNodePath | null) => void;
 	patch: (path: FlexNodePath, patch: Record<string, unknown>) => void;
+	/** ノード参照で対象を解決して patch（位置や選択の変化に強い） */
+	patchNodeRef: (
+		node: FlexComponentType,
+		patch: Record<string, unknown>,
+	) => void;
 	insert: (parentPath: FlexNodePath, kind: InsertableKind) => void;
 	/** 挿入後の bubble を返す（呼び出し側は挿入後の状態から選択位置を計算できる） */
 	insertNodeAt: (
@@ -162,16 +170,20 @@ export function useFlexDoc(
 		lastError,
 		select: setSelected,
 		patch: (path, p) => {
-			// NM2: 画像の url パッチは、対象ノードがまだ image のときだけ適用する。
-			// 保留中のアップロード完了が、削除・移動でずれたパスを握っている場合を防ぐ
-			if (
-				p.url !== undefined &&
-				getNode(bubbleRef.current, path)?.type !== "image"
-			) {
-				setLastError("対象の部品が変わったため、変更を適用しませんでした");
+			commit(patchNode(bubbleRef.current, path, p), { keepSelection: true });
+		},
+		patchNodeRef: (node, p) => {
+			// 書き込み先を「ノードそのもの」で解決する（REVIEW-4 の根治）:
+			// アップロードの完了が開始時の位置・選択を握っていても、
+			// 対象ノードが今どこにいるかを探索し、存在する場合だけ書き込む
+			const found = findNodePath(bubbleRef.current, node);
+			if (!found) {
+				setLastError(
+					"対象の部品が移動または削除されたため、変更を適用しませんでした",
+				);
 				return;
 			}
-			commit(patchNode(bubbleRef.current, path, p), { keepSelection: true });
+			commit(patchNode(bubbleRef.current, found, p), { keepSelection: true });
 		},
 		insert,
 		insertNodeAt: (parentPath, kind, index) => {

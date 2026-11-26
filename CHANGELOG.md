@@ -22,12 +22,6 @@
 - WYSIWYG エディタの `value` は初期値として扱われます（制御コンポーネントではありません。テンプレート差し替えは `key` で再マウント）
 - CSS は oklch / @layer を使うため Safari 16.4+ / Chrome 111+ / Firefox 128+ 相当が必要
 
-## [1.5.0] - 2026-09-07
-
-### Added
-
-- **エディタの右パネルをアコーディオン形式に再構成し、JSON 欄を作り直す**（PR #6）
-
 ## [1.6.0] - 2026-09-25
 
 ### Added
@@ -44,6 +38,13 @@
 - 🚨 `span` には既定を置かない（親の `text` に指定した色を上書きしてしまうため）。色未指定の `span` は inline color を持たず、親から継承する
 
 > LINE 公式ドキュメントに「`text` の `color` の既定値」の記載は見つかりませんでした（`docs/messaging-api/flex-message-elements` の EN / JA、`reference/messaging-api`、サイト内検索を確認）。値はこの package 自身の慣習（`LineTextBubble` が使っていた `#111111`）に合わせています。
+
+## [1.5.0] - 2026-09-07
+
+### Added
+
+- **エディタの右パネルをアコーディオン形式に再構成し、JSON 欄を作り直す**（PR #6）
+- 公開 API を追加: `FlexPreview`、`EditorPanel`、`NodeInspector`（`BoxInspector` / `ButtonInspector` / `IconInspector` / `ImageInspector` / `SeparatorInspector` / `SpacerInspector` / `TextInspector`）、フィールド部品（`ColorField` / `NumberField` / `SelectField` / `TextField` / `ToggleField`）、`Outline`、`JsonPanel`、テンプレート（`defaultTemplates`）、`editorColors` / `editorFont`
 
 ## [1.4.0] - 2026-09-06
 

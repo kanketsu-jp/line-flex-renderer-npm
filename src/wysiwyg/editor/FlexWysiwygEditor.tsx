@@ -239,7 +239,7 @@ export function FlexWysiwygEditor({
 												lockedUris={lockedUris}
 												onImageUpload={onImageUpload}
 												onPatch={(p) =>
-													doc.selected && doc.patch(doc.selected, p)
+													selectedNode && doc.patchNodeRef(selectedNode, p)
 												}
 											/>
 										</div>
@@ -358,7 +358,7 @@ export function FlexWysiwygEditor({
 												lockedUris={lockedUris}
 												onImageUpload={onImageUpload}
 												onPatch={(p) =>
-													doc.selected && doc.patch(doc.selected, p)
+													selectedNode && doc.patchNodeRef(selectedNode, p)
 												}
 											/>
 										)}

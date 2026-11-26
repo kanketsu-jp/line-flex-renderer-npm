@@ -405,6 +405,164 @@ describe("FlexWysiwygEditor 昇格受入", () => {
 		expect((last.body?.contents?.[0] as { url?: string }).url).toBeUndefined();
 	});
 
+	/** [A, B] 2 画像の bubble */
+	function twoImages(): FlexBubble {
+		return {
+			type: "bubble",
+			body: {
+				type: "box",
+				layout: "vertical",
+				contents: [
+					{ type: "image", url: "https://example.com/A.png" },
+					{ type: "image", url: "https://example.com/B.png" },
+				],
+			},
+		};
+	}
+
+	/** 保留付きアップローダ */
+	function pendingUpload() {
+		let resolve: (url: string) => void = () => {};
+		const fn = vi.fn<(file: File) => Promise<string>>().mockImplementation(
+			() =>
+				new Promise((res) => {
+					resolve = res;
+				}),
+		);
+		return { fn, resolve: (u: string) => resolve(u) };
+	}
+
+	const pngFile = () => new File(["x"], "a.png", { type: "image/png" });
+
+	it("Q1. A のアップロード中に A を削除 → 完了時に B の url が変わらない（NB2/NM2 回帰）", async () => {
+		g().__containerWidth = 1200;
+		const onChange = vi.fn();
+		const up = pendingUpload();
+		render(
+			<FlexWysiwygEditor
+				value={twoImages()}
+				onChange={onChange}
+				onImageUpload={up.fn}
+			/>,
+		);
+		const images = document.querySelectorAll('[data-flex-type="image"]');
+		const a = images[0];
+		fireEvent.click(a);
+		fireEvent.change(document.querySelector('aside input[type="file"]') ?? {}, {
+			target: { files: [pngFile()] },
+		});
+		// 保留中に A を削除
+		fireEvent.keyDown(a, { key: "Delete" });
+		await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+		await act(async () => {
+			up.resolve("https://cdn.example.com/up.png");
+		});
+		await new Promise((r) => setTimeout(r, 50));
+		const last = onChange.mock.calls.at(-1)?.[0] as FlexBubble;
+		expect((last.body?.contents?.[0] as { url?: string }).url).toBe(
+			"https://example.com/B.png",
+		);
+	});
+
+	it("Q2. A のアップロード中に B を選択 → 完了時に B の url が変わらない（NB2 回帰）", async () => {
+		g().__containerWidth = 1200;
+		const onChange = vi.fn();
+		const up = pendingUpload();
+		render(
+			<FlexWysiwygEditor
+				value={twoImages()}
+				onChange={onChange}
+				onImageUpload={up.fn}
+			/>,
+		);
+		const images = document.querySelectorAll('[data-flex-type="image"]');
+		fireEvent.click(images[0]);
+		fireEvent.change(document.querySelector('aside input[type="file"]') ?? {}, {
+			target: { files: [pngFile()] },
+		});
+		// 保留中に B を選択
+		fireEvent.click(images[1]);
+		await act(async () => {
+			up.resolve("https://cdn.example.com/up.png");
+		});
+		await new Promise((r) => setTimeout(r, 50));
+		const last = onChange.mock.calls.at(-1)?.[0] as FlexBubble;
+		expect(
+			(last.body?.contents?.[1] as { url?: string }).url ??
+				"https://example.com/B.png",
+		).toBe("https://example.com/B.png");
+		// A に反映される
+		expect((last.body?.contents?.[0] as { url?: string }).url).toBe(
+			"https://cdn.example.com/up.png",
+		);
+	});
+
+	it("Q3. icon の画像URLを編集できる（NM5 回帰）", async () => {
+		g().__containerWidth = 1200;
+		const onChange = vi.fn();
+		const iconBubble = {
+			type: "bubble",
+			body: {
+				type: "box",
+				layout: "vertical",
+				contents: [
+					{
+						type: "box",
+						layout: "baseline",
+						contents: [
+							{ type: "icon", url: "https://example.com/i.png" },
+							{ type: "text", text: "t" },
+						],
+					},
+				],
+			},
+		} as unknown as FlexBubble;
+		render(<FlexWysiwygEditor value={iconBubble} onChange={onChange} />);
+		const icon = document.querySelector('[data-flex-type="icon"]');
+		expect(icon).not.toBeNull();
+		fireEvent.click(icon);
+		const input = [...document.querySelectorAll("aside input")].find(
+			(e) => (e as HTMLInputElement).value === "https://example.com/i.png",
+		);
+		expect(input).toBeTruthy();
+		fireEvent.change(input ?? {}, {
+			target: { value: "https://example.com/j.png" },
+		});
+		await new Promise((r) => setTimeout(r, 50));
+		expect(onChange).toHaveBeenCalledTimes(1);
+	});
+
+	it("Q9. A のアップロード中に A を下へ移動 → 完了時に B の url が変わらない（NM6 回帰）", async () => {
+		g().__containerWidth = 380; // SP
+		const onChange = vi.fn();
+		const up = pendingUpload();
+		render(
+			<FlexWysiwygEditor
+				value={twoImages()}
+				onChange={onChange}
+				onImageUpload={up.fn}
+			/>,
+		);
+		fireEvent.click(document.querySelectorAll('[data-flex-type="image"]')[0]);
+		fireEvent.click(screen.getByRole("button", { name: "編集" }));
+		const dlg = await screen.findByRole("dialog");
+		fireEvent.change(dlg.querySelector('input[type="file"]') ?? {}, {
+			target: { files: [pngFile()] },
+		});
+		fireEvent.click(screen.getByRole("button", { name: "下へ", hidden: true }));
+		await waitFor(() => expect(onChange).toHaveBeenCalledTimes(1));
+		await act(async () => {
+			up.resolve("https://cdn.example.com/up.png");
+		});
+		await new Promise((r) => setTimeout(r, 50));
+		const last = onChange.mock.calls.at(-1)?.[0] as FlexBubble;
+		// B の url は不変
+		const b = last.body?.contents?.find(
+			(c) => (c as { url?: string }).url === "https://example.com/B.png",
+		);
+		expect(b).toBeDefined();
+	});
+
 	it("5-a. undo で onChange が呼ばれ、テキストが戻る", async () => {
 		g().__containerWidth = 1200;
 		const onChange = vi.fn();
