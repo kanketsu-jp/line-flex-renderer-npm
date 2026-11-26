@@ -1,0 +1,48 @@
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "./base.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "tw-animate-css";
+
+/*
+ * 配布用 CSS（dist/wysiwyg.css として同梱）。
+ *
+ * スコープ設計（REVIEW M1/N1/N2/N5 対策）:
+ * - preflight（グローバルリセット）は出さない。
+ *   必要な最小リセットは @layer base の中で .lfw-root 配下に限定して書く
+ *   （レイヤーの外に書くと utilities に勝って余白・枠線・背景を消すため）
+ * - shadcn トークンは :root ではなく .lfw-root の中だけ
+ * - source(none) + @source "../" で src/wysiwyg 配下だけをスキャン
+ *   （stories 専用クラスが配布物に混入しない）
+ * - Sheet は Portal で body 直下に出るため、SheetContent/SheetOverlay 側にも
+ *   lfw-root クラスを付けてスコープ内に収める（ui/sheet.tsx 参照)
+ */
+
+@source "../";
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) + 4px);
+}

@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.7.0] - 2026-11-25
+
+### Added
+
+- **WYSIWYG エディタ `FlexWysiwygEditor`**（別入口 `line-flex-message-renderer/wysiwyg`）
+  - LINE Flex Message をプレビュー上で直接編集できる新エディタ
+  - モバイル（ボトムシート）と PC（右パネル）をコンテナ幅で自動切替
+  - Divider の「＋」から部品選択シートで挿入、部品選択で「編集」「削除」バー
+  - 画像はアップロード式（`onImageUpload` でホスト側のアップローダに差し替え可、未指定は data URL）
+  - 差し込み保護 `lockedUris`（該当 action の削除・URI 変更を拒否）
+  - undo / redo（100 ステップ）
+  - `preview` props で表示専用モード
+  - 戻る/次へなどのナビは `children` として呼び出し側が自由に配置
+- 同梱 CSS `line-flex-message-renderer/wysiwyg.css`（`.lfw-root` 配下にスコープ）
+- `@radix-ui/react-dialog` を任意の peer 依存として追加（`/wysiwyg` を使う場合はインストール必須）
+
+### Compatibility
+
+- 既存 API に破壊的変更はありません。renderer（`FlexMessagePreview` 等）は引き続き zero-dependency・CSS-in-JS です
+- WYSIWYG エディタの `value` は初期値として扱われます（制御コンポーネントではありません。テンプレート差し替えは `key` で再マウント）
+- CSS は oklch / @layer を使うため Safari 16.4+ / Chrome 111+ / Firefox 128+ 相当が必要
+
 ## [1.6.0] - 2026-09-25
 
 ### Added
@@ -16,6 +38,13 @@
 - 🚨 `span` には既定を置かない（親の `text` に指定した色を上書きしてしまうため）。色未指定の `span` は inline color を持たず、親から継承する
 
 > LINE 公式ドキュメントに「`text` の `color` の既定値」の記載は見つかりませんでした（`docs/messaging-api/flex-message-elements` の EN / JA、`reference/messaging-api`、サイト内検索を確認）。値はこの package 自身の慣習（`LineTextBubble` が使っていた `#111111`）に合わせています。
+
+## [1.5.0] - 2026-09-07
+
+### Added
+
+- **エディタの右パネルをアコーディオン形式に再構成し、JSON 欄を作り直す**（PR #6）
+- 公開 API を追加: `FlexPreview`、`EditorPanel`、`NodeInspector`（`BoxInspector` / `ButtonInspector` / `IconInspector` / `ImageInspector` / `SeparatorInspector` / `SpacerInspector` / `TextInspector`）、フィールド部品（`ColorField` / `NumberField` / `SelectField` / `TextField` / `ToggleField`）、`Outline`、`JsonPanel`、テンプレート（`defaultTemplates`）、`editorColors` / `editorFont`
 
 ## [1.4.0] - 2026-09-06
 
